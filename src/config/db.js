@@ -25,10 +25,10 @@ app.get("/Administrador", (request, response) => {
   db.query("SELECT * FROM Administradores", (err, result) => {
     if (err) {
       console.error('Error en la consulta:', err);
-      return res.json({ error: err });
+      return response.json({ error: err });
     }
     
-    res.json(result);
+    response.json(result);
   });
 });
 

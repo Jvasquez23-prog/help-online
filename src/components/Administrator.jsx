@@ -40,8 +40,8 @@ const RequestDoctors = () => {
           <input type="text" placeholder="Nombre" />
           <input type="text" placeholder="Primer Apellido" />
           <input type="text" placeholder="Segundo Apellido" />
-          <input type="text" placeholder="Nacionalidad" />
           <input type="text" placeholder="Cédula" />
+          <input type="text" placeholder="Contraseña" />
           <select>
             <option value="">Seleccionar Área</option>
             <option value="cardiologia">Cardiología</option>

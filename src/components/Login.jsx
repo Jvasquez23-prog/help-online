@@ -23,11 +23,6 @@ export default function Login() {
       });
   }, []);
 
-  if (administrator.length === 0) {
-    setError('Error de conexión. Intenta nuevamente');
-    return;
-  }
-
   const handleCedulaChange = (e) => {
     const valor = e.target.value;
     

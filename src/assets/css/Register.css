@@ -110,3 +110,13 @@
   color: #06b6d4;
   cursor: pointer;
 }
+
+.register-error-message {
+  margin-top: 10px;
+  padding: 32px;
+}
+
+.register-error-message {
+  font-size: 18px;
+  color: red;
+}

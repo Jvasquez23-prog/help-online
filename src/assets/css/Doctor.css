@@ -1,0 +1,309 @@
+.doctor {
+  width: 100%;
+  height: 100%;
+}
+
+.doctor-container {
+  width: inherit;
+  height: inherit;
+  background-color: #f4fbfb;
+}
+
+.doctor-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 180px;
+  padding: 32px;
+  border-bottom: 1px solid rgba(8, 145, 178, 0.3);
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 100px;
+    height: 120px;
+  }
+}
+
+.doctor-header > h1 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #000000;
+}
+
+.doctor-header > p {
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #0891b2;
+}
+
+.doctor-header > span {
+  width: 200px;
+  margin-top: 20px;
+  padding: 5px;
+  border: none;
+  border-radius: 30px;
+  font-size: 20px;
+  font-weight: 600;
+  background-color: #cffafe;
+  color: #1a6279;
+
+  @media (width > 1000px) {
+    width: 150px;
+    font-size: 15px;
+    position: absolute;
+    top: 15px;
+    left: 280px;
+  }
+}
+
+.doctor-navbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  height: 90px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.doctor-navbar > button {
+  flex: 0 0 auto;
+  width: 300px;
+  height: 50px;
+  margin: 0 5px 0 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 20px;
+  font-size: 20px;
+  font-weight: 500;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.doctor-content {
+  width: 100%;
+}
+
+.office {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: inherit;
+  height: inherit;
+  background-color: #f4fbfb;
+}
+
+.office-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+
+  @media (width > 1000px) {
+    width: 60%;
+    margin-top: 80px;
+    padding: 32px;
+    border-radius: 20px;
+  }
+}
+
+.office-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+  color: #000000;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 80%;
+  }
+}
+
+.office-message > h3 {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.office-message > p {
+  margin-top: 5px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.office-container > form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding-bottom: 30px;
+
+  @media (width > 1000px) {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.office-container > form > input,
+.office-container > form > select {
+  width: 350px;
+  height: 60px;
+  margin: 15px 0 15px 0;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  border-radius: 10px;
+  background-color: #f4fafa;
+
+  @media (width > 1000px) {
+    margin: 10px;
+  }
+}
+
+.office-container > form > input:nth-child(2) {
+  font-size: 25px;
+  font-weight: 500;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.office-medicaments {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: inherit;
+  background-color: #f4fbfb;
+  margin-bottom: 40px;
+}
+
+.office-medicaments-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+
+  @media (width > 1000px) {
+    width: 100%;
+    padding: 32px;
+    border-radius: 20px;
+  }
+}
+
+.office-medicament-item {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  background-color: #cffafe;
+}
+
+.office-medicament-item > h1 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 60px;
+  background-color: #06b6d4;
+  color: #ffffff;
+}
+
+.office-medicament-item > form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding-bottom: 30px;
+  position: relative;
+
+  @media (width > 1000px) {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.office-medicament-item > form > input {
+  width: 350px;
+  height: 60px;
+  margin: 15px 0 15px 0;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  border-radius: 10px;
+  background-color: #f4fafa;
+
+  @media (width > 1000px) {
+    margin: 10px;
+  }
+}
+
+.office-medicament-item > form > label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 350px;
+  height: 60px;
+  margin: 15px 0 15px 0;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  border-radius: 10px;
+  background-color: #06b6d4;
+
+  @media (width > 1000px) {
+    margin: 10px;
+  }
+}
+
+.office-medicament-item > form > input:nth-child(5) {
+  margin-top: 40px;
+  font-size: 25px;
+  font-weight: 500;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+
+  @media (width > 1000px) {
+    position: relative;
+    left: 200px;
+  }
+}

@@ -1,0 +1,304 @@
+.administrator {
+  width: 100%;
+  height: 100%;
+}
+
+.administrator-container {
+  width: inherit;
+  height: inherit;
+  background-color: #f4fbfb;
+}
+
+.administrator-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 180px;
+  padding: 32px;
+  border-bottom: 1px solid rgba(8, 145, 178, 0.3);
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 100px;
+    height: 120px;
+  }
+}
+
+.administrator-header > h1 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #000000;
+}
+
+.administrator-header > p {
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #0891b2;
+}
+
+.administrator-header > span {
+  width: 200px;
+  margin-top: 20px;
+  padding: 5px;
+  border: none;
+  border-radius: 30px;
+  font-size: 20px;
+  font-weight: 600;
+  background-color: #cffafe;
+  color: #1a6279;
+
+  @media (width > 1000px) {
+    width: 150px;
+    font-size: 15px;
+    position: absolute;
+    top: 15px;
+    left: 280px;
+  }
+}
+
+.administrator-navbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  height: 90px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.administrator-navbar > button {
+  flex: 0 0 auto;
+  width: 300px;
+  height: 50px;
+  margin: 0 5px 0 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 20px;
+  font-size: 20px;
+  font-weight: 500;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.administrator-content {
+  width: 100%;
+}
+
+.request-doctors {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: inherit;
+  height: inherit;
+  background-color: #f4fbfb;
+}
+
+.request-doctors-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+
+  @media (width > 1000px) {
+    width: 60%;
+    margin-top: 80px;
+    padding: 32px;
+    border-radius: 20px;
+  }
+}
+
+.request-doctors-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+  color: #000000;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 80%;
+  }
+}
+
+.request-doctors-message > h3 {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.request-doctors-message > p {
+  margin-top: 5px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.request-doctors-container > form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding-bottom: 30px;
+
+  @media (width > 1000px) {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.request-doctors-container > form > input,
+.request-doctors-container > form > select {
+  width: 350px;
+  height: 60px;
+  margin: 15px 0 15px 0;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  border-radius: 10px;
+  background-color: #f4fafa;
+
+  @media (width > 1000px) {
+    margin: 10px;
+  }
+}
+
+.request-doctors-container > form > input:nth-child(7) {
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: 500;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+
+  @media (width > 1000px) {
+    position: relative;
+    left: 200px;
+  }
+}
+
+.inventory-management {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: inherit;
+  height: inherit;
+  background-color: #f4fbfb;
+}
+
+.inventory-management-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+
+  @media (width > 1000px) {
+    width: 60%;
+    margin-top: 80px;
+    padding: 32px;
+    border-radius: 20px;
+  }
+}
+
+.inventory-management-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+  color: #000000;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 80%;
+  }
+}
+
+.inventory-management-message > h3 {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.inventory-management-message > p {
+  margin-top: 5px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.inventory-management-container > form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding-bottom: 30px;
+
+  @media (width > 1000px) {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.inventory-management-container > form > input,
+.inventory-management-container > form > select {
+  width: 350px;
+  height: 60px;
+  margin: 15px 0 15px 0;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  border-radius: 10px;
+  background-color: #f4fafa;
+
+  @media (width > 1000px) {
+    margin: 10px;
+  }
+}
+
+.inventory-management-container > form > input:nth-child(5) {
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: 500;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+
+  @media (width > 1000px) {
+    position: relative;
+    left: 200px;
+  }
+}

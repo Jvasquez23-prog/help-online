@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { setData } from '../services/Doctor.js';
+
 import '../assets/css/Administrator.css';
 
 const InventoryManagement = () => {
@@ -14,10 +16,13 @@ const InventoryManagement = () => {
         <form>
           <select>
             <option value="">Seleccionar Área</option>
+            <option value="1">Cardiología</option>
+            <option value="2">Dermatología</option>
+            <option value="3">Oftalmología</option>
+            <option value="4">Psicología</option>
+            <option value="5">Paliativos</option>
           </select>
-          <select>
-            <option value="">Seleccionar Medicamentos</option>
-          </select>
+          <input type="text" placeholder="Nombre" />
           <input type="text" placeholder="Cantidad" />
           <input type="date" placeholder="Fecha de Vencimiento" />
           <input type="submit" value="Enviar" />
@@ -28,6 +33,82 @@ const InventoryManagement = () => {
 }
 
 const RequestDoctors = () => {
+  const [formData, setFormData] = useState({
+    nombre: '',
+    p_apellido: '',
+    s_apellido: '',
+    cedula: '',
+    contrasena: '',
+    idArea: ''
+  });
+
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === 'nombre') {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/.test(value)) {
+        return;
+      }
+    }
+
+    if (name === 'p_apellido') {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]*$/.test(value)) {
+        return;
+      }
+    }
+
+    if (name === 's_apellido') {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]*$/.test(value)) {
+        return;
+      }
+    }
+
+    if (name === 'cedula') {
+      if (!/^\d{0,9}$/.test(value)) {
+        return;
+      }
+    }
+
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (formData.cedula.length !== 9 || !/^\d{9}$/.test(formData.cedula)) {
+      setError('La cédula debe contener únicamente 9 digitos');
+      return;
+    }
+
+    if (!formData.idArea) {
+      setError('Debe seleccionar un área');
+      return;
+    }
+
+    try {
+      await setData(formData);
+      setSuccess('Doctor registrado exitosamente');
+      setFormData({
+        nombre: '',
+        p_apellido: '',
+        s_apellido: '',
+        cedula: '',
+        contrasena: '',
+        idArea: ''
+      });
+    } catch (error) {
+      setError(error.message || 'No se pudo conectar con el servidor');
+    }
+  };
+
   return (
     <div className="request-doctors">
       <div className="request-doctors-container">
@@ -36,22 +117,32 @@ const RequestDoctors = () => {
           <p>Solicita médicos para trabajar en su área especializada</p>
         </div>
 
-        <form>
-          <input type="text" placeholder="Nombre" />
-          <input type="text" placeholder="Primer Apellido" />
-          <input type="text" placeholder="Segundo Apellido" />
-          <input type="text" placeholder="Cédula" />
-          <input type="text" placeholder="Contraseña" />
-          <select>
+        <form onSubmit={handleSubmit}>
+          <input type="text" name="nombre" placeholder="Nombre" value={formData.nombre} onChange={handleChange} required />
+          <input type="text" name="p_apellido" placeholder="Primer Apellido" value={formData.p_apellido} onChange={handleChange} required />
+          <input type="text" name="s_apellido" placeholder="Segundo Apellido" value={formData.s_apellido} onChange={handleChange} />
+          <input type="text" name="cedula" placeholder="Cédula" value={formData.cedula} onChange={handleChange} maxLength={9} required />
+          <input type="password" name="contrasena" placeholder="Contraseña" value={formData.contrasena} onChange={handleChange} required />
+          <select name="idArea" value={formData.idArea} onChange={handleChange} required>
             <option value="">Seleccionar Área</option>
-            <option value="cardiologia">Cardiología</option>
-            <option value="dermatologia">Dermatología</option>
-            <option value="oftalmologia">Oftalmología</option>
-            <option value="psicologia">Psicología</option>
-            <option value="paliativo">Paliativos</option>
+            <option value="1">Cardiología</option>
+            <option value="2">Dermatología</option>
+            <option value="3">Oftalmología</option>
+            <option value="4">Psicología</option>
+            <option value="5">Paliativos</option>
           </select>
           <input type="submit" value="Solicitar" />
         </form>
+        {error && (
+          <div className="request-doctors-error">
+            <p>{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="request-doctors-success">
+            <p>{success}</p>
+          </div>
+        )}
       </div>
     </div>
   );

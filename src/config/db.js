@@ -22,6 +22,21 @@ db.connect((error) => {
   }
 });
 
+function verificarCedulaUnica(cedula, callback) {
+  db.query(
+    "SELECT 'Pacientes' AS tabla FROM Pacientes WHERE cedula = ? " +
+    "UNION SELECT 'Administradores' FROM Administradores WHERE cedula = ? " +
+    "UNION SELECT 'Doctores' FROM Doctores WHERE cedula = ?",
+    [cedula, cedula, cedula],
+    (err, results) => {
+      if (err) {
+        return callback(err, null);
+      }
+      callback(null, results);
+    }
+  );
+}
+
 app.get("/Administrador", (request, response) => {
   db.query("SELECT * FROM Administradores", (err, result) => {
     if (err) {
@@ -47,60 +62,69 @@ app.get("/Pacientes", (request, response) => {
 app.post("/Pacientes", (request, response) => {
   const { nombre, p_apellido, s_apellido, cedula, edad, contrasena } = request.body;
 
-  db.query(
-    "SELECT * FROM Pacientes WHERE cedula = ?",
-    [cedula],
-    async (err, results) => {
-      if (err) {
-        console.error(err);
-        return response.status(500).json({ error: "Error en el servidor al verificar la cédula" });
+  verificarCedulaUnica(cedula, (err, results) => {
+    if (err) {
+      console.error(err);
+      return response.status(500).json({ error: "Error en el servidor al verificar la cédula" });
+    }
+
+    if (results.length > 0) {
+      return response.status(400).json({ error: "La cédula ingresada ya se encuentra registrada" });
+    }
+
+    bcrypt.hash(contrasena, 10, (hashErr, contrasenaEncriptada) => {
+      if (hashErr) {
+        console.error(hashErr);
+        return response.status(500).json({ error: "Error interno al procesar la seguridad" });
       }
-
-      if (results.length > 0) {
-        return response.status(400).json({ error: "La cédula ingresada ya se encuentra registrada" });
-      }
-
-      const registrarPaciente = async () => {
-        try {
-          const saltRounds = 10;
-          const contrasenaEncriptada = await bcrypt.hash(contrasena, saltRounds);
-
-          db.query(
-            "INSERT INTO Pacientes (nombre, p_apellido, s_apellido, cedula, edad, contrasena) VALUES (?, ?, ?, ?, ?, ?)",
-            [nombre, p_apellido, s_apellido, cedula, edad, contrasenaEncriptada],
-            (err, result) => {
-              if (err) {
-                console.error(err);
-                return response.status(500).json({ error: "Error al registrar el paciente" });
-              }
-              response.json({ message: "Usuario registrado exitosamente" });
-            }
-          );
-
-        } catch (cryptoError) {
-          console.error("Error al encriptar la contraseña:", cryptoError);
-          return response.status(500).json({ error: "Error interno al procesar la seguridad" });
-        }
-      };
 
       db.query(
-        "SELECT * FROM Administradores WHERE cedula = ?",
-        [cedula],
-        (adminErr, adminResults) => {
-          if (adminErr) {
-            console.error(adminErr);
-            return response.status(500).json({ error: "Error en el servidor al verificar la cédula" });
+        "INSERT INTO Pacientes (nombre, p_apellido, s_apellido, cedula, edad, contrasena) VALUES (?, ?, ?, ?, ?, ?)",
+        [nombre, p_apellido, s_apellido, cedula, edad, contrasenaEncriptada],
+        (insertErr, result) => {
+          if (insertErr) {
+            console.error(insertErr);
+            return response.status(500).json({ error: "Error al registrar el paciente" });
           }
-
-          if (adminResults.length > 0) {
-            return response.status(400).json({ error: "La cédula ingresada ya se encuentra registrada" });
-          }
-
-          registrarPaciente();
+          response.json({ message: "Usuario registrado exitosamente" });
         }
       );
+    });
+  });
+});
+
+app.post("/Doctores", (request, response) => {
+  const { nombre, p_apellido, s_apellido, cedula, contrasena, idArea } = request.body;
+
+  verificarCedulaUnica(cedula, (err, results) => {
+    if (err) {
+      console.error(err);
+      return response.status(500).json({ error: "Error en el servidor al verificar la cédula" });
     }
-  );
+
+    if (results.length > 0) {
+      return response.status(400).json({ error: "La cédula ingresada ya se encuentra registrada" });
+    }
+
+    bcrypt.hash(contrasena, 10, (hashErr, contrasenaEncriptada) => {
+      if (hashErr) {
+        console.error(hashErr);
+        return response.status(500).json({ error: "Error interno al procesar la seguridad" });
+      }
+
+      db.query(
+        "INSERT INTO Doctores (nombre, p_apellido, s_apellido, cedula, contrasena, idArea) VALUES (?, ?, ?, ?, ?, ?)",
+        [nombre, p_apellido, s_apellido, cedula, contrasenaEncriptada, idArea],
+        (insertErr, result) => {
+          if (insertErr) {
+            console.error(insertErr);
+            return response.status(500).json({ error: "Error al registrar el doctor" });
+          }
+          response.json({ message: "Doctor registrado exitosamente" });
+        }
+      );
+    });
+  });
 });
 
 app.post("/Login", (request, response) => {
@@ -124,31 +148,59 @@ app.post("/Login", (request, response) => {
       }
 
       db.query(
-        "SELECT * FROM Pacientes WHERE cedula = ?",
+        "SELECT * FROM Doctores WHERE cedula = ?",
         [cedula],
-        (pacErr, pacResults) => {
-          if (pacErr) {
-            console.error(pacErr);
-            return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+        (docErr, docResults) => {
+          if (docErr) {
+            console.error(docErr);
+            return response.status(500).json({ error: "Error en el servidor al verificar el doctor" });
           }
 
-          if (pacResults.length === 0) {
-            return response.status(400).json({ error: "La cédula o contraseña no es válida" });
+          if (docResults.length > 0) {
+            const doctor = docResults[0];
+            bcrypt.compare(contrasena, doctor.contrasena, (bcryptErr, match) => {
+              if (bcryptErr) {
+                console.error(bcryptErr);
+                return response.status(500).json({ error: "Error en el servidor al verificar la contraseña" });
+              }
+
+              if (!match) {
+                return response.status(400).json({ error: "La cédula o contraseña no es válida" });
+              }
+
+              response.json({ role: "doctor", nombre: doctor.nombre });
+            });
+            return;
           }
 
-          const paciente = pacResults[0];
-          bcrypt.compare(contrasena, paciente.contrasena, (bcryptErr, match) => {
-            if (bcryptErr) {
-              console.error(bcryptErr);
-              return response.status(500).json({ error: "Error en el servidor al verificar la contraseña" });
-            }
+          db.query(
+            "SELECT * FROM Pacientes WHERE cedula = ?",
+            [cedula],
+            (pacErr, pacResults) => {
+              if (pacErr) {
+                console.error(pacErr);
+                return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+              }
 
-            if (!match) {
-              return response.status(400).json({ error: "La cédula o contraseña no es válida" });
-            }
+              if (pacResults.length === 0) {
+                return response.status(400).json({ error: "La cédula o contraseña no es válida" });
+              }
 
-            response.json({ role: "paciente", nombre: paciente.nombre });
-          });
+              const paciente = pacResults[0];
+              bcrypt.compare(contrasena, paciente.contrasena, (bcryptErr, match) => {
+                if (bcryptErr) {
+                  console.error(bcryptErr);
+                  return response.status(500).json({ error: "Error en el servidor al verificar la contraseña" });
+                }
+
+                if (!match) {
+                  return response.status(400).json({ error: "La cédula o contraseña no es válida" });
+                }
+
+                response.json({ role: "paciente", nombre: paciente.nombre });
+              });
+            }
+          );
         }
       );
     }

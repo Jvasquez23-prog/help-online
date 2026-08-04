@@ -127,6 +127,22 @@ app.post("/Doctores", (request, response) => {
   });
 });
 
+app.post("/Medicamentos", (request, response) => {
+  const { nombre, cantidad, fecha_vencimiento, idArea } = request.body;
+
+  db.query(
+    "INSERT INTO Medicamentos (nombre, cantidad, fecha_vencimiento, idArea) VALUES (?, ?, ?, ?)",
+    [nombre, cantidad, fecha_vencimiento, idArea],
+    (insertErr, result) => {
+      if (insertErr) {
+        console.error(insertErr);
+        return response.status(500).json({ error: "Error al registrar el medicamento" });
+      }
+      response.json({ message: "Medicamento registrado exitosamente" });
+    }
+  );
+});
+
 app.post("/Login", (request, response) => {
   const { cedula, contrasena } = request.body;
 

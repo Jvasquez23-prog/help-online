@@ -1,3 +1,18 @@
+export async function getData() {
+  const url = 'http://localhost:5000/Pacientes';
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
 export const setData = async (formData) => {
   try {
     const res = await fetch('http://localhost:5000/Pacientes', {

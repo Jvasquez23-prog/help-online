@@ -1,27 +1,16 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 
-import { getData } from '../services/Administrator.js';
+import { login } from '../services/Auth.js';
 
 import '../assets/css/Login.css';
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [administrator, setAdministrator] = useState([]);
   const [cedula, setCedula] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    getData()
-      .then(data => {
-        setAdministrator(data);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-  }, []);
 
   const handleCedulaChange = (e) => {
     const valor = e.target.value;
@@ -35,7 +24,7 @@ export default function Login() {
     return cedula.length === 9 && /^\d{9}$/.test(cedula);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -44,21 +33,17 @@ export default function Login() {
       return;
     }
 
-    const usuarioEncontrado = administrator.find(
-      admin => admin.cedula === cedula
-    );
+    try {
+      const data = await login({ cedula, contrasena });
 
-    if (!usuarioEncontrado) {
-      setError('La cédula o contraseña no es válida');
-      return;
+      if (data.role === 'admin') {
+        navigate('/Administrator');
+      } else {
+        navigate('/Pacient');
+      }
+    } catch (error) {
+      setError(error.message || 'La cédula o contraseña no es válida');
     }
-
-    if (usuarioEncontrado.contrasena !== contrasena) {
-      setError('La cédula o contraseña no es válida');
-      return;
-    }
-
-    navigate('/Administrator');
   };
 
   return (

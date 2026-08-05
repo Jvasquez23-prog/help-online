@@ -289,7 +289,7 @@
   }
 }
 
-.inventory-management-container > form > input:nth-child(5) {
+.inventory-management-container > form > input[type="submit"] {
   margin-top: 50px;
   font-size: 25px;
   font-weight: 500;
@@ -301,4 +301,119 @@
     position: relative;
     left: 200px;
   }
+}
+
+.area-management {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: inherit;
+  height: inherit;
+  background-color: #f4fbfb;
+}
+
+.area-management-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+
+  @media (width > 1000px) {
+    width: 60%;
+    margin-top: 80px;
+    padding: 32px;
+    border-radius: 20px;
+  }
+}
+
+.area-management-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+  color: #000000;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 80%;
+  }
+}
+
+.area-management-message > h3 {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.area-management-message > p {
+  margin-top: 5px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.area-management-container > form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding-bottom: 30px;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.area-management-container > form > input {
+  width: 350px;
+  height: 60px;
+  margin: 15px 0 15px 0;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  border-radius: 10px;
+  background-color: #f4fafa;
+
+  @media (width > 1000px) {
+    margin: 10px;
+  }
+}
+
+.area-management-container > form > input[type="submit"] {
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: 500;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.area-management-error,
+.area-management-success {
+  width: 350px;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.area-management-error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.area-management-success {
+  background-color: #d1fae5;
+  color: #065f46;
 }

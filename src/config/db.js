@@ -191,6 +191,63 @@ app.post("/Areas", (request, response) => {
   );
 });
 
+app.get("/Doctores", (request, response) => {
+  const { area } = request.query;
+  let query = "SELECT * FROM Doctores";
+  let params = [];
+
+  if (area) {
+    query += " WHERE idArea = ?";
+    params.push(area);
+  }
+
+  db.query(query, params, (err, result) => {
+    if (err) {
+      console.error('Error en la consulta:', err);
+      return response.json({ error: err });
+    }
+
+    response.json(result);
+  });
+});
+
+app.post("/Citas", (request, response) => {
+  const { cedula, idDoc, fecha_cita } = request.body;
+
+  if (!cedula || !idDoc || !fecha_cita) {
+    return response.status(400).json({ error: "Cédula, doctor y fecha de cita son obligatorios" });
+  }
+
+  db.query(
+    "SELECT idPac FROM Pacientes WHERE cedula = ?",
+    [cedula],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+      }
+
+      if (results.length === 0) {
+        return response.status(400).json({ error: "El paciente no se encuentra registrado" });
+      }
+
+      const idPac = results[0].idPac;
+
+      db.query(
+        "INSERT INTO Citas (estado, fecha_cita, idDoc, idPac) VALUES (?, ?, ?, ?)",
+        ["Programada", fecha_cita, idDoc, idPac],
+        (insertErr, result) => {
+          if (insertErr) {
+            console.error(insertErr);
+            return response.status(500).json({ error: "Error al registrar la cita" });
+          }
+          response.json({ message: "Cita registrada exitosamente" });
+        }
+      );
+    }
+  );
+});
+
 app.post("/Login", (request, response) => {
   const { cedula, contrasena } = request.body;
 
@@ -210,7 +267,8 @@ app.post("/Login", (request, response) => {
             role: "admin",
             nombre: admin.nombre,
             p_apellido: admin.p_apellido,
-            s_apellido: admin.s_apellido
+            s_apellido: admin.s_apellido,
+            cedula: admin.cedula
           });
         }
         return response.status(400).json({ error: "La cédula o contraseña no es válida" });
@@ -241,7 +299,8 @@ app.post("/Login", (request, response) => {
                 role: "doctor",
                 nombre: doctor.nombre,
                 p_apellido: doctor.p_apellido,
-                s_apellido: doctor.s_apellido
+                s_apellido: doctor.s_apellido,
+                cedula: doctor.cedula
               });
             });
             return;
@@ -275,7 +334,8 @@ app.post("/Login", (request, response) => {
                   role: "paciente",
                   nombre: paciente.nombre,
                   p_apellido: paciente.p_apellido,
-                  s_apellido: paciente.s_apellido
+                  s_apellido: paciente.s_apellido,
+                  cedula: paciente.cedula
                 });
               });
             }

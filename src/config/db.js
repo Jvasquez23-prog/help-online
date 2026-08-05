@@ -143,6 +143,54 @@ app.post("/Medicamentos", (request, response) => {
   );
 });
 
+app.get("/Areas", (request, response) => {
+  db.query("SELECT * FROM Areas", (err, result) => {
+    if (err) {
+      console.error('Error en la consulta:', err);
+      return response.json({ error: err });
+    }
+
+    response.json(result);
+  });
+});
+
+app.post("/Areas", (request, response) => {
+  const { nombre } = request.body;
+
+  if (!nombre || !String(nombre).trim()) {
+    return response.status(400).json({ error: "El nombre del área es obligatorio" });
+  }
+
+  const nombreLimpio = nombre.trim();
+
+  db.query(
+    "SELECT * FROM Areas WHERE nombre = ?",
+    [nombreLimpio],
+    (findErr, results) => {
+      if (findErr) {
+        console.error(findErr);
+        return response.status(500).json({ error: "Error al verificar el área" });
+      }
+
+      if (results.length > 0) {
+        return response.status(400).json({ error: "El área ingresada ya se encuentra registrada" });
+      }
+
+      db.query(
+        "INSERT INTO Areas (nombre) VALUES (?)",
+        [nombreLimpio],
+        (insertErr, result) => {
+          if (insertErr) {
+            console.error(insertErr);
+            return response.status(500).json({ error: "Error al registrar el área" });
+          }
+          response.json({ message: "Área registrada exitosamente" });
+        }
+      );
+    }
+  );
+});
+
 app.post("/Login", (request, response) => {
   const { cedula, contrasena } = request.body;
 

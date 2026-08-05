@@ -400,7 +400,9 @@
 }
 
 .area-management-error,
-.area-management-success {
+.area-management-success,
+.request-doctors-error,
+.request-doctors-success {
   width: 350px;
   margin-bottom: 20px;
   padding: 20px;
@@ -408,12 +410,14 @@
   text-align: center;
 }
 
-.area-management-error {
+.area-management-error,
+.request-doctors-error {
   background-color: #fee2e2;
   color: #b91c1c;
 }
 
-.area-management-success {
+.area-management-success,
+.request-doctors-success {
   background-color: #d1fae5;
   color: #065f46;
 }

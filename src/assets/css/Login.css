@@ -81,13 +81,13 @@
 }
 
 .login-error-message {
-  margin-top: 10px;
-  padding: 32px;
-}
-
-.login-error-message {
-  font-size: 18px;
-  color: red;
+  width: 350px;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  background-color: #fee2e2;
+  color: #b91c1c;
 }
 
 .login-sign-up {

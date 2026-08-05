@@ -405,3 +405,7 @@
     width: 80%;
   }
 }
+
+.user-marker-icon {
+  filter: hue-rotate(120deg) saturate(2);
+}

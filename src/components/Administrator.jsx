@@ -9,7 +9,7 @@ const InventoryManagement = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     cantidad: '',
-    fecha_vencimiento: '',
+        fecha_entrega: '',
     idArea: ''
   });
 
@@ -48,8 +48,8 @@ const InventoryManagement = () => {
       return;
     }
 
-    if (!formData.fecha_vencimiento) {
-      setError('Debe seleccionar una fecha de vencimiento');
+    if (!formData.fecha_entrega) {
+      setError('Debe seleccionar una fecha de entrega');
       return;
     }
 
@@ -64,7 +64,7 @@ const InventoryManagement = () => {
       setFormData({
         nombre: '',
         cantidad: '',
-        fecha_vencimiento: '',
+    fecha_entrega: '',
         idArea: ''
       });
     } catch (error) {
@@ -91,7 +91,7 @@ const InventoryManagement = () => {
           </select>
           <input type="text" name="nombre" placeholder="Nombre" value={formData.nombre} onChange={handleChange} required />
           <input type="text" name="cantidad" placeholder="Cantidad" value={formData.cantidad} onChange={handleChange} maxLength={9} required />
-          <input type="date" name="fecha_vencimiento" placeholder="Fecha de Vencimiento" value={formData.fecha_vencimiento} onChange={handleChange} required />
+          <input type="date" name="fecha_entrega" placeholder="Fecha de Entrega" value={formData.fecha_entrega} onChange={handleChange} required />
           <input type="submit" value="Enviar" />
         </form>
         {error && (

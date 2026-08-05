@@ -128,11 +128,11 @@ app.post("/Doctores", (request, response) => {
 });
 
 app.post("/Medicamentos", (request, response) => {
-  const { nombre, cantidad, fecha_vencimiento, idArea } = request.body;
+  const { nombre, cantidad, fecha_entrega, idArea } = request.body;
 
   db.query(
-    "INSERT INTO Medicamentos (nombre, cantidad, fecha_vencimiento, idArea) VALUES (?, ?, ?, ?)",
-    [nombre, cantidad, fecha_vencimiento, idArea],
+    "INSERT INTO Medicamentos (nombre, cantidad, fecha_entrega, idArea) VALUES (?, ?, ?, ?)",
+    [nombre, cantidad, fecha_entrega, idArea],
     (insertErr, result) => {
       if (insertErr) {
         console.error(insertErr);

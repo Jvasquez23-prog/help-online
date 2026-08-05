@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { setData } from '../services/Doctor.js';
 import { setData as setMedicineData } from '../services/Medicine.js';
+import { setData as setAreaData } from '../services/Area.js';
 
 import '../assets/css/Administrator.css';
 
@@ -225,6 +226,75 @@ const RequestDoctors = () => {
   );
 }
 
+const AreaManagement = () => {
+  const [formData, setFormData] = useState({
+    nombre: ''
+  });
+
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === 'nombre') {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/.test(value)) {
+        return;
+      }
+    }
+
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!formData.nombre.trim()) {
+      setError('Debe ingresar el nombre del área');
+      return;
+    }
+
+    try {
+      await setAreaData(formData);
+      setSuccess('Área registrada exitosamente');
+      setFormData({ nombre: '' });
+    } catch (error) {
+      setError(error.message || 'No se pudo conectar con el servidor');
+    }
+  };
+
+  return (
+    <div className="area-management">
+      <div className="area-management-container">
+        <div className="area-management-message">
+          <h3>Registro de Áreas de Trabajo</h3>
+          <p>Registra las áreas donde trabajan los doctores</p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <input type="text" name="nombre" placeholder="Nombre del Área" value={formData.nombre} onChange={handleChange} required />
+          <input type="submit" value="Registrar" />
+        </form>
+        {error && (
+          <div className="area-management-error">
+            <p>{error}</p>
+          </div>
+        )}
+{success && (
+          <div className="area-management-success">
+            <p>{success}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Administrator() {
   const [activeSection, setActiveSection] = useState('doctors');
 
@@ -239,11 +309,13 @@ export default function Administrator() {
 
         <div className="administrator-navbar">
           <button className={activeSection === 'doctors' ? 'active' : ''} onClick={() => setActiveSection('doctors')}>Solicitud de Personal</button>
+          <button className={activeSection === 'areas' ? 'active' : ''} onClick={() => setActiveSection('areas')}>Registro de Áreas</button>
           <button className={activeSection === 'inventory' ? 'active' : ''} onClick={() => setActiveSection('inventory')}>Manejo de Inventario</button>
         </div>
 
         <div className="administrator-content">
           {activeSection === 'doctors' && <RequestDoctors />}
+          {activeSection === 'areas' && <AreaManagement />}
           {activeSection === 'inventory' && <InventoryManagement />}
         </div>
       </div>

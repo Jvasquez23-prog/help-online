@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
 import { getNearbyPharmacies } from '../services/Pharmacy.js';
+import { getData as getAreasData } from '../services/Area.js';
 
 import 'leaflet/dist/leaflet.css';
 import '../assets/css/Pacient.css';
@@ -11,14 +12,6 @@ import '../assets/css/Pacient.css';
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 const GEMINI_MODEL = 'gemini-flash-latest';
-
-const MEDICAL_AREAS = [
-  { id: '1', nombre: 'Cardiología' },
-  { id: '2', nombre: 'Dermatología' },
-  { id: '3', nombre: 'Oftalmología' },
-  { id: '4', nombre: 'Psicología' },
-  { id: '5', nombre: 'Paliativos' },
-];
 
 const normalizeAreaName = (name) =>
   String(name || '')
@@ -398,6 +391,17 @@ const MedicalAssistant = ({ areas, onSelectArea }) => {
 const RequestAppointment = () => {
   const [area, setArea] = useState('');
   const [doctor, setDoctor] = useState('');
+  const [areas, setAreas] = useState([]);
+
+  useEffect(() => {
+    const loadAreas = async () => {
+      const result = await getAreasData();
+      if (result && !result.error) {
+        setAreas(result.map((medicalArea) => ({ id: medicalArea.idArea, nombre: medicalArea.nombre })));
+      }
+    };
+    loadAreas();
+  }, []);
 
   return (
     <div className="request-appointment">
@@ -408,10 +412,10 @@ const RequestAppointment = () => {
         </div>
 
         <form>
-          <MedicalAssistant areas={MEDICAL_AREAS} onSelectArea={setArea} />
+          <MedicalAssistant areas={areas} onSelectArea={setArea} />
           <select name="area" value={area} onChange={(e) => setArea(e.target.value)} required>
             <option value="">Seleccionar Área</option>
-            {MEDICAL_AREAS.map((medicalArea) => (
+            {areas.map((medicalArea) => (
               <option key={medicalArea.id} value={medicalArea.id}>
                 {medicalArea.nombre}
               </option>
@@ -429,14 +433,23 @@ const RequestAppointment = () => {
 
 export default function Pacient() {
   const [activeSection, setActiveSection] = useState('appointment');
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const user = localStorage.getItem('helpOnlineUser');
+    if (user) {
+      const parsed = JSON.parse(user);
+      setUserName([parsed.nombre, parsed.p_apellido, parsed.s_apellido].filter(Boolean).join(' '));
+    }
+  }, []);
 
   return (
     <div className="pacient">
       <div className="pacient-container">
         <div className="pacient-header">
           <h1>Help Online</h1>
-          <p>Bienvenido a nuestro sistema, <b></b></p>
-          <span>👋🏻</span>
+          <p>Bienvenido a nuestro sistema, <b>{userName}</b></p>
+          <span>Paciente 👋🏻</span>
         </div>
 
         <div className="pacient-navbar">

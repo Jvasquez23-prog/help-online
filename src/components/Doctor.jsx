@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import '../assets/css/Doctor.css';
 
@@ -36,14 +36,23 @@ const Office = () => {
 
 export default function Doctor() {
   const [activeSection, setActiveSection] = useState('office');
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const user = localStorage.getItem('helpOnlineUser');
+    if (user) {
+      const parsed = JSON.parse(user);
+      setUserName([parsed.nombre, parsed.p_apellido, parsed.s_apellido].filter(Boolean).join(' '));
+    }
+  }, []);
 
   return (
     <div className="doctor">
       <div className="doctor-container">
         <div className="doctor-header">
           <h1>Help Online</h1>
-          <p>Bienvenido a nuestro sistema, <b></b></p>
-          <span>🥼</span>
+          <p>Bienvenido a nuestro sistema, <b>{userName}</b></p>
+          <span>Doctor 🥼</span>
         </div>
 
         <div className="doctor-navbar">

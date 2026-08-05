@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { setData } from '../services/Doctor.js';
 import { setData as setMedicineData } from '../services/Medicine.js';
-import { setData as setAreaData } from '../services/Area.js';
+import { setData as setAreaData, getData as getAreasData } from '../services/Area.js';
 
 import '../assets/css/Administrator.css';
 
@@ -14,8 +14,19 @@ const InventoryManagement = () => {
     idArea: ''
   });
 
+  const [areas, setAreas] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const loadAreas = async () => {
+      const result = await getAreasData();
+      if (result && !result.error) {
+        setAreas(result);
+      }
+    };
+    loadAreas();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,11 +95,11 @@ const InventoryManagement = () => {
         <form onSubmit={handleSubmit}>
           <select name="idArea" value={formData.idArea} onChange={handleChange} required>
             <option value="">Seleccionar Área</option>
-            <option value="1">Cardiología</option>
-            <option value="2">Dermatología</option>
-            <option value="3">Oftalmología</option>
-            <option value="4">Psicología</option>
-            <option value="5">Paliativos</option>
+            {areas.map((area) => (
+              <option key={area.idArea} value={area.idArea}>
+                {area.nombre}
+              </option>
+            ))}
           </select>
           <input type="text" name="nombre" placeholder="Nombre" value={formData.nombre} onChange={handleChange} required />
           <input type="text" name="cantidad" placeholder="Cantidad" value={formData.cantidad} onChange={handleChange} maxLength={9} required />
@@ -120,8 +131,19 @@ const RequestDoctors = () => {
     idArea: ''
   });
 
+  const [areas, setAreas] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const loadAreas = async () => {
+      const result = await getAreasData();
+      if (result && !result.error) {
+        setAreas(result);
+      }
+    };
+    loadAreas();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -203,11 +225,11 @@ const RequestDoctors = () => {
           <input type="password" name="contrasena" placeholder="Contraseña" value={formData.contrasena} onChange={handleChange} required />
           <select name="idArea" value={formData.idArea} onChange={handleChange} required>
             <option value="">Seleccionar Área</option>
-            <option value="1">Cardiología</option>
-            <option value="2">Dermatología</option>
-            <option value="3">Oftalmología</option>
-            <option value="4">Psicología</option>
-            <option value="5">Paliativos</option>
+            {areas.map((area) => (
+              <option key={area.idArea} value={area.idArea}>
+                {area.nombre}
+              </option>
+            ))}
           </select>
           <input type="submit" value="Solicitar" />
         </form>
@@ -297,14 +319,23 @@ const AreaManagement = () => {
 
 export default function Administrator() {
   const [activeSection, setActiveSection] = useState('doctors');
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const user = localStorage.getItem('helpOnlineUser');
+    if (user) {
+      const parsed = JSON.parse(user);
+      setUserName([parsed.nombre, parsed.p_apellido, parsed.s_apellido].filter(Boolean).join(' '));
+    }
+  }, []);
 
   return (
     <div className="administrator">
       <div className="administrator-container">
         <div className="administrator-header">
           <h1>Help Online</h1>
-          <p>Bienvenido a nuestro sistema, <b></b></p>
-          <span>👨🏻‍💻</span>
+          <p>Bienvenido a nuestro sistema, <b>{userName}</b></p>
+          <span>Administrador 👨🏻‍💻</span>
         </div>
 
         <div className="administrator-navbar">

@@ -36,6 +36,8 @@ export default function Login() {
     try {
       const data = await login({ cedula, contrasena });
 
+      localStorage.setItem('helpOnlineUser', JSON.stringify(data));
+
       if (data.role === 'admin') {
         navigate('/Administrator');
       } else if (data.role === 'doctor') {

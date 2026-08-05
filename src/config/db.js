@@ -206,7 +206,12 @@ app.post("/Login", (request, response) => {
       if (adminResults.length > 0) {
         const admin = adminResults[0];
         if (admin.contrasena === contrasena) {
-          return response.json({ role: "admin", nombre: admin.nombre });
+          return response.json({
+            role: "admin",
+            nombre: admin.nombre,
+            p_apellido: admin.p_apellido,
+            s_apellido: admin.s_apellido
+          });
         }
         return response.status(400).json({ error: "La cédula o contraseña no es válida" });
       }
@@ -232,7 +237,12 @@ app.post("/Login", (request, response) => {
                 return response.status(400).json({ error: "La cédula o contraseña no es válida" });
               }
 
-              response.json({ role: "doctor", nombre: doctor.nombre });
+              response.json({
+                role: "doctor",
+                nombre: doctor.nombre,
+                p_apellido: doctor.p_apellido,
+                s_apellido: doctor.s_apellido
+              });
             });
             return;
           }
@@ -261,7 +271,12 @@ app.post("/Login", (request, response) => {
                   return response.status(400).json({ error: "La cédula o contraseña no es válida" });
                 }
 
-                response.json({ role: "paciente", nombre: paciente.nombre });
+                response.json({
+                  role: "paciente",
+                  nombre: paciente.nombre,
+                  p_apellido: paciente.p_apellido,
+                  s_apellido: paciente.s_apellido
+                });
               });
             }
           );

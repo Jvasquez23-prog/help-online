@@ -116,7 +116,6 @@
 
   @media (width > 1000px) {
     width: 60%;
-    margin-top: 80px;
     padding: 32px;
     border-radius: 20px;
   }
@@ -186,17 +185,30 @@
 }
 
 .request-appointment-container > form > input[type="submit"] {
-  margin-top: 50px;
   font-size: 25px;
   font-weight: 500;
   background-color: #06b6d4;
   color: #ffffff;
   cursor: pointer;
+}
 
-  @media (width > 1000px) {
-    position: relative;
-    left: 200px;
-  }
+.request-appointment-error,
+.request-appointment-success {
+  width: 350px;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.request-appointment-error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.request-appointment-success {
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 .medical-assistant {

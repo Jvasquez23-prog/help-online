@@ -8,6 +8,38 @@ import { getNearbyPharmacies } from '../services/Pharmacy.js';
 import 'leaflet/dist/leaflet.css';
 import '../assets/css/Pacient.css';
 
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+
+const GEMINI_MODEL = 'gemini-flash-latest';
+
+const MEDICAL_AREAS = [
+  { id: '1', nombre: 'Cardiología' },
+  { id: '2', nombre: 'Dermatología' },
+  { id: '3', nombre: 'Oftalmología' },
+  { id: '4', nombre: 'Psicología' },
+  { id: '5', nombre: 'Paliativos' },
+];
+
+const normalizeAreaName = (name) =>
+  String(name || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+async function callGemini(payload) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`La consulta de IA falló (${response.status})`);
+  }
+  return response.json();
+}
+
 const defaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -195,7 +227,178 @@ const ListAppointments = () => {
   );
 }
 
+const MedicalAssistant = ({ areas, onSelectArea }) => {
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState('');
+  const [recommended, setRecommended] = useState([]);
+  const [error, setError] = useState('');
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+
+  const speak = (text) => {
+    if (!voiceEnabled || !('speechSynthesis' in window) || !text) return;
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'es-ES';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    const esVoice = window.speechSynthesis
+      .getVoices()
+      .find((voice) => voice.lang && voice.lang.toLowerCase().startsWith('es'));
+    if (esVoice) {
+      utterance.voice = esVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleConsult = async () => {
+    const padecimiento = query.trim();
+    if (!padecimiento) return;
+
+    setLoading(true);
+    setError('');
+    setInfo('');
+    setRecommended([]);
+
+    const areaNames = areas.map((area) => area.nombre).join(', ');
+    const systemPrompt =
+      'Actúas como un asistente clínico de orientación para un sistema de citas médicas. ' +
+      'Responde únicamente en JSON con la estructura indicada en el esquema. ' +
+      `Las únicas áreas médicas disponibles en el sistema son: ${areaNames}. ` +
+      'En "informacion" entrega una explicación breve y clara del padecimiento (máximo 3 líneas). ' +
+      'En "areasRecomendadas" lista SOLO los nombres de las áreas disponibles que mejor atienden ese padecimiento (puede ser un arreglo vacío). ' +
+      'Añade siempre una nota de que la consulta es informativa y no sustituye la valoración profesional.';
+
+    const userPrompt =
+      `El paciente describe el siguiente padecimiento: "${padecimiento}". ` +
+      '¿Qué área o áreas médicas registradas debería seleccionar para su cita y cuál es la información breve del padecimiento?';
+
+    const payload = {
+      contents: [{ parts: [{ text: userPrompt }] }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'OBJECT',
+          properties: {
+            informacion: { type: 'STRING' },
+            areasRecomendadas: { type: 'ARRAY', items: { type: 'STRING' } },
+          },
+          required: ['informacion', 'areasRecomendadas'],
+        },
+      },
+    };
+
+    try {
+      const data = await callGemini(payload);
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error('Sin respuesta de IA.');
+
+      const parsed = JSON.parse(text);
+      const parsedInfo = parsed.informacion || 'No se pudo generar la información del padecimiento.';
+      setInfo(parsedInfo);
+
+      const recommendedNames = Array.isArray(parsed.areasRecomendadas) ? parsed.areasRecomendadas : [];
+      const matched = areas.filter((area) =>
+        recommendedNames.some((name) => normalizeAreaName(name) === normalizeAreaName(area.nombre))
+      );
+      setRecommended(matched);
+
+      const speechText =
+        matched.length > 0
+          ? `${parsedInfo} Te recomiendo solicitar tu cita en el área de ${matched.map((area) => area.nombre).join(', ')}.`
+          : `${parsedInfo} No encontré un área específica registrada para tu padecimiento, te sugiero consultar con un especialista.`;
+      speak(speechText);
+    } catch (err) {
+      setError(
+        GEMINI_API_KEY
+          ? 'No se pudo completar la consulta con Gemini. Revisa tu conexión e intenta nuevamente.'
+          : 'Falta la API Key de Gemini. Colócala en el archivo .env (VITE_GEMINI_API_KEY) y reinicia el servidor de desarrollo.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="medical-assistant">
+      <div className="medical-assistant-header">
+        <div className="medical-assistant-icon">⚕️</div>
+        <div>
+          <h3>Asistente Clínico IA</h3>
+          <p>Describe tu padecimiento y te recomiendo el área para tu cita</p>
+        </div>
+        <button
+          type="button"
+          className={`medical-assistant-voice ${voiceEnabled ? 'active' : ''}`}
+          onClick={() => {
+            if (voiceEnabled && 'speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+            }
+            setVoiceEnabled(!voiceEnabled);
+          }}
+          title={voiceEnabled ? 'Desactivar voz' : 'Activar voz'}
+        >
+          {voiceEnabled ? '🔊 Voz Activada' : '🔇 Voz Desactivada'}
+        </button>
+      </div>
+
+      <div className="medical-assistant-form">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleConsult();
+            }
+          }}
+          placeholder="Ej: Me duele el pecho y siento palpitaciones..."
+        />
+        <button type="button" onClick={handleConsult} disabled={loading || !query.trim()}>
+          {loading ? 'Consultando...' : 'Consultar con IA'}
+        </button>
+      </div>
+
+      {loading && <div className="medical-assistant-loading">El asistente está analizando tu padecimiento...</div>}
+
+      {error && <div className="medical-assistant-error">{error}</div>}
+
+      {info && (
+        <div className="medical-assistant-result">
+          <h4>Sobre tu padecimiento</h4>
+          <p>{info}</p>
+          {recommended.length > 0 && (
+            <div className="medical-assistant-areas">
+              <h4>Área(s) recomendada(s) en el sistema:</h4>
+              <div className="medical-assistant-areas-list">
+                {recommended.map((area) => (
+                  <button key={area.id} type="button" onClick={() => onSelectArea(area.id)}>
+                    {area.nombre}
+                  </button>
+                ))}
+              </div>
+              <p className="medical-assistant-note">Haz clic en un área para seleccionarla en el formulario.</p>
+            </div>
+          )}
+          <p className="medical-assistant-note">
+            Esta información es meramente orientativa y no sustituye la valoración de un especialista.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const RequestAppointment = () => {
+  const [area, setArea] = useState('');
+  const [doctor, setDoctor] = useState('');
+
   return (
     <div className="request-appointment">
       <div className="request-appointment-container">
@@ -205,10 +408,16 @@ const RequestAppointment = () => {
         </div>
 
         <form>
-          <select>
+          <MedicalAssistant areas={MEDICAL_AREAS} onSelectArea={setArea} />
+          <select name="area" value={area} onChange={(e) => setArea(e.target.value)} required>
             <option value="">Seleccionar Área</option>
+            {MEDICAL_AREAS.map((medicalArea) => (
+              <option key={medicalArea.id} value={medicalArea.id}>
+                {medicalArea.nombre}
+              </option>
+            ))}
           </select>
-          <select>
+          <select name="doctor" value={doctor} onChange={(e) => setDoctor(e.target.value)} required>
             <option value="">Seleccionar Doctor</option>
           </select>
           <input type="submit" value="Solicitar" />

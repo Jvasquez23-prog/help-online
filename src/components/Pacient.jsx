@@ -1,6 +1,151 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+
+import { getNearbyPharmacies } from '../services/Pharmacy.js';
+
+import 'leaflet/dist/leaflet.css';
 import '../assets/css/Pacient.css';
+
+const defaultIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+const userIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+  className: 'user-marker-icon',
+});
+
+const MapCenter = ({ position }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.setView(position, 14);
+    }
+  }, [position, map]);
+  return null;
+};
+
+const PharmacyMap = () => {
+  const [position, setPosition] = useState(null);
+  const [pharmacies, setPharmacies] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const pharmaciesLoadedRef = useRef(false);
+
+  useEffect(() => {
+    const loadLocation = () => {
+      if (!navigator.geolocation) {
+        setError('Tu navegador no soporta la geolocalización');
+        setLoading(false);
+        return;
+      }
+
+      const success = async (geo) => {
+        const lat = geo.coords.latitude;
+        const lon = geo.coords.longitude;
+        setPosition([lat, lon]);
+        if (!pharmaciesLoadedRef.current) {
+          try {
+            const result = await getNearbyPharmacies(lat, lon);
+            setPharmacies(result);
+            pharmaciesLoadedRef.current = true;
+            if (result.length === 0) {
+              setError('No se encontraron farmacias cercanas');
+            }
+          } catch {
+            setError('No se pudieron cargar las farmacias cercanas');
+          }
+        }
+        setLoading(false);
+      };
+
+      const error = () => {
+        setError('No se pudo obtener tu ubicación');
+        setLoading(false);
+      };
+
+      navigator.geolocation.getCurrentPosition(success, error, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+      });
+
+      return navigator.geolocation.watchPosition(success, error, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 1000,
+      });
+    };
+
+    const watchId = loadLocation();
+
+    return () => {
+      if (watchId !== undefined) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, []);
+
+  return (
+    <div className="pharmacy-map">
+      <div className="pharmacy-map-container">
+        <div className="pharmacy-map-message">
+          <h3>Mapa de Farmacias</h3>
+          <p>Ubicación de las farmacias cercanas a ti</p>
+        </div>
+
+        {loading && (
+          <div className="pharmacy-map-loading">
+            <p>Buscando tu ubicación...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="pharmacy-map-error">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {position && (
+          <div className="pharmacy-map-map">
+            <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
+              <MapCenter position={position} />
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={position} icon={userIcon}>
+                <Popup>Tu ubicación (en tiempo real)</Popup>
+              </Marker>
+              {pharmacies.map((pharmacy) => (
+                <Marker key={pharmacy.id} position={[pharmacy.lat, pharmacy.lon]} icon={defaultIcon}>
+                  <Popup>
+                    <b>{pharmacy.nombre}</b>
+                    {pharmacy.direccion && <br />}
+                    {pharmacy.direccion}
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const ListAppointments = () => {
   return (
@@ -88,11 +233,13 @@ export default function Pacient() {
         <div className="pacient-navbar">
           <button className={activeSection === 'appointment' ? 'active' : ''} onClick={() => setActiveSection('appointment')}>Solicitud Citas</button>
           <button className={activeSection === 'lists' ? 'active' : ''} onClick={() => setActiveSection('lists')}>Lista de Citas</button>
+          <button className={activeSection === 'map' ? 'active' : ''} onClick={() => setActiveSection('map')}>Farmacias</button>
         </div>
 
         <div className="pacient-content">
           {activeSection === 'appointment' && <RequestAppointment />}
           {activeSection === 'lists' && <ListAppointments />}
+          {activeSection === 'map' && <PharmacyMap />}
         </div>
       </div>
     </div>

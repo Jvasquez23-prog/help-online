@@ -5,6 +5,7 @@ import L from 'leaflet';
 
 import { getNearbyPharmacies } from '../services/Pharmacy.js';
 import { getData as getAreasData } from '../services/Area.js';
+import { setData as setAppointmentData, getDoctors as getDoctorsData } from '../services/Appointment.js';
 
 import 'leaflet/dist/leaflet.css';
 import '../assets/css/Pacient.css';
@@ -391,7 +392,11 @@ const MedicalAssistant = ({ areas, onSelectArea }) => {
 const RequestAppointment = () => {
   const [area, setArea] = useState('');
   const [doctor, setDoctor] = useState('');
+  const [date, setDate] = useState('');
   const [areas, setAreas] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     const loadAreas = async () => {
@@ -403,6 +408,57 @@ const RequestAppointment = () => {
     loadAreas();
   }, []);
 
+  useEffect(() => {
+    const loadDoctors = async () => {
+      if (!area) {
+        setDoctors([]);
+        return;
+      }
+      const result = await getDoctorsData(area);
+      if (result && !result.error) {
+        setDoctors(result);
+      }
+    };
+    setDoctor('');
+    loadDoctors();
+  }, [area]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!area) {
+      setError('Debe seleccionar un área');
+      return;
+    }
+
+    if (!doctor) {
+      setError('Debe seleccionar un doctor');
+      return;
+    }
+
+    if (!date) {
+      setError('Debe seleccionar la fecha de la cita');
+      return;
+    }
+
+    try {
+      const user = JSON.parse(localStorage.getItem('helpOnlineUser') || '{}');
+      await setAppointmentData({
+        cedula: user.cedula,
+        idDoc: doctor,
+        fecha_cita: date
+      });
+      setSuccess('Cita solicitada exitosamente');
+      setArea('');
+      setDoctor('');
+      setDate('');
+    } catch (error) {
+      setError(error.message || 'No se pudo conectar con el servidor');
+    }
+  };
+
   return (
     <div className="request-appointment">
       <div className="request-appointment-container">
@@ -411,7 +467,7 @@ const RequestAppointment = () => {
           <p>Solicita tu cita con el doctor especializado de tu preferencia</p>
         </div>
 
-        <form>
+        <form onSubmit={handleSubmit}>
           <MedicalAssistant areas={areas} onSelectArea={setArea} />
           <select name="area" value={area} onChange={(e) => setArea(e.target.value)} required>
             <option value="">Seleccionar Área</option>
@@ -423,9 +479,25 @@ const RequestAppointment = () => {
           </select>
           <select name="doctor" value={doctor} onChange={(e) => setDoctor(e.target.value)} required>
             <option value="">Seleccionar Doctor</option>
+            {doctors.map((doc) => (
+              <option key={doc.idDoc} value={doc.idDoc}>
+                {doc.nombre} {doc.p_apellido} {doc.s_apellido}
+              </option>
+            ))}
           </select>
+          <input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} required />
           <input type="submit" value="Solicitar" />
         </form>
+        {error && (
+          <div className="request-appointment-error">
+            <p>{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="request-appointment-success">
+            <p>{success}</p>
+          </div>
+        )}
       </div>
     </div>
   );

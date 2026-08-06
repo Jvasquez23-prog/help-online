@@ -5,7 +5,7 @@ import L from 'leaflet';
 
 import { getNearbyPharmacies } from '../services/Pharmacy.js';
 import { getData as getAreasData } from '../services/Area.js';
-import { setData as setAppointmentData, getDoctors as getDoctorsData } from '../services/Appointment.js';
+import { setData as setAppointmentData, getData as getAppointmentsData, getDoctors as getDoctorsData } from '../services/Appointment.js';
 
 import 'leaflet/dist/leaflet.css';
 import '../assets/css/Pacient.css';
@@ -174,6 +174,52 @@ const PharmacyMap = () => {
 }
 
 const ListAppointments = () => {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadAppointments = async () => {
+      setLoading(true);
+      setError('');
+      const user = JSON.parse(localStorage.getItem('helpOnlineUser') || '{}');
+      const result = await getAppointmentsData(user.cedula);
+      if (result && !result.error) {
+        setAppointments(result);
+      } else {
+        setError('No se pudieron cargar tus citas');
+      }
+      setLoading(false);
+    };
+    loadAppointments();
+  }, []);
+
+  const formatDate = (fechaCita) => {
+    const date = new Date(fechaCita);
+    const options = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return date.toLocaleString('es-CR', options);
+  };
+
+  const estadoClassName = (estado) => {
+    const normalized = String(estado || '').toLowerCase();
+    if (normalized.includes('aprob')) {
+      return 'cita-estado-aprobada';
+    }
+    if (normalized.includes('rechaz')) {
+      return 'cita-estado-rechazada';
+    }
+    if (normalized.includes('program')) {
+      return 'cita-estado-programada';
+    }
+    return 'cita-estado-default';
+  };
+
   return (
     <div className="list-appointment">
       <div className="list-appointment-container">
@@ -182,40 +228,50 @@ const ListAppointments = () => {
           <p>Mira todas tus citas programadas</p>
         </div>
 
-        <div className="list-appointment-item">
-          <div className="list-appointment-item-container">
-            <div className="list-appointment-header">
-              <h1>Cita #001</h1>
-            </div>
-            <div className="list-appointment-body">
-              <div className="list-appointment-body-item">
-                <h3>ID:</h3>
-                <p>000001</p>
-              </div>
-              <div className="list-appointment-body-item">
-                <h3>Doctor:</h3>
-                <p>Catherine Paola Pérez Sánchez</p>
-              </div>
-              <div className="list-appointment-body-item">
-                <h3>Área:</h3>
-                <p>Cardiología</p>
-              </div>
-              <div className="list-appointment-body-item">
-                <h3>Estado:</h3>
-                <p>Aprobado</p>
-              </div>
-              <div className="list-appointment-body-item">
-                <h3>Fecha de Solicitud:</h3>
-                <p>12/02/2026</p>
-              </div>
-              <div className="list-appointment-body-item">
-                <h3>Cita Programada:</h3>
-                <p>12/03/2026</p>
-              </div>
-              <button>Cancelar</button>
-            </div>
+        {loading && <div className="list-appointment-loading">Cargando tus citas...</div>}
+
+        {error && (
+          <div className="list-appointment-error">
+            <p>{error}</p>
           </div>
-        </div>
+        )}
+
+        {!loading && !error && (
+          <div className="list-appointment-table-container">
+            {appointments.length === 0 ? (
+              <div className="list-appointment-empty">
+                <p>Aún no tienes citas registradas.</p>
+              </div>
+            ) : (
+              <table className="list-appointment-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Área</th>
+                    <th>Fecha y Hora</th>
+                    <th>Estado</th>
+                    <th>Doctor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map((appointment) => (
+                    <tr key={appointment.idCita}>
+                      <td>{appointment.idCita}</td>
+                      <td>{appointment.area}</td>
+                      <td>{formatDate(appointment.fecha_cita)}</td>
+                      <td>
+                        <span className={`cita-estado ${estadoClassName(appointment.estado)}`}>
+                          {appointment.estado}
+                        </span>
+                      </td>
+                      <td>{appointment.doctor}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

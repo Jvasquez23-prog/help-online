@@ -220,24 +220,155 @@
   }
 }
 
+.office-error {
+  width: 350px;
+  margin-top: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  text-align: center;
+}
+
+.office-success {
+  width: 350px;
+  margin-top: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #dcfce7;
+  color: #15803d;
+  text-align: center;
+}
+
+.office-patient-info {
+  width: 350px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;;
+  background-color: #ecfeff;
+  color: #0e7490;
+  text-align: left;
+}
+
 .office-medicament-item {
   display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 95%;
+  border: none;
+  border-radius: 20px;
   background-color: #cffafe;
 }
 
-.office-medicament-item > h1 {
+.office-medicament-item.visible {
+  display: flex;
+}
+
+.consult-block {
+  margin-bottom: 20px;
+}
+
+.gestion-citas-loading {
+  margin: 20px 0;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #ecfeff;
+  color: #0e7490;
+}
+
+.consult-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 90%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.consult-item {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 60px;
-  background-color: #06b6d4;
+  padding: 15px 20px;
+  border: 1px solid rgba(8, 145, 178, 0.3);
+  border-radius: 12px;
+  background-color: #ffffff;
+
+  @media (width > 1000px) {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+}
+
+.consult-item-info p {
+  margin: 3px 0;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.consult-status {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.consult-status.programada {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+
+.consult-status.aprobada {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.consult-status.rechazada {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.consult-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.consult-actions > button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
   color: #ffffff;
+  cursor: pointer;
+}
+
+.consult-actions > button:first-child {
+  background-color: #10b981;
+}
+
+.consult-actions > button:last-child {
+  background-color: #ef4444;
 }
 
 .office-medicament-item > form {
@@ -258,6 +389,7 @@
   }
 }
 
+.office-medicament-item > form > select,
 .office-medicament-item > form > input {
   width: 350px;
   height: 60px;
@@ -272,6 +404,18 @@
   @media (width > 1000px) {
     margin: 10px;
   }
+}
+
+.office-medicament-item > form > textarea {
+  margin-left: 10px;
+  padding-top: 20px;
+  padding-left: 20px;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  border-radius: 10px;
+  background-color: #f4fafa;
+  resize: none;
 }
 
 .office-medicament-item > form > label {
@@ -294,16 +438,11 @@
   }
 }
 
-.office-medicament-item > form > input:nth-child(5) {
+.office-medicament-item > form > input:nth-child(6) {
   margin-top: 40px;
   font-size: 25px;
   font-weight: 500;
   background-color: #06b6d4;
   color: #ffffff;
   cursor: pointer;
-
-  @media (width > 1000px) {
-    position: relative;
-    left: 200px;
-  }
 }

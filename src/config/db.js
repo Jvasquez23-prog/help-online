@@ -255,6 +255,54 @@ app.post("/Consultas", (request, response) => {
   );
 });
 
+app.get("/Recetas", (request, response) => {
+  const { cedula } = request.query;
+
+  if (!cedula) {
+    return response.status(400).json({ error: "La cédula es obligatoria" });
+  }
+
+  db.query(
+    "SELECT idPac FROM Pacientes WHERE cedula = ?",
+    [cedula],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+      }
+
+      if (results.length === 0) {
+        return response.status(400).json({ error: "El paciente no se encuentra registrado" });
+      }
+
+      const idPac = results[0].idPac;
+
+      db.query(
+        `SELECT co.idCon, co.descripcion, co.cantidad, co.dosis, co.frecuencia,
+                c.fecha_cita,
+                m.nombre AS medicamento,
+                CONCAT(d.nombre, ' ', d.p_apellido, ' ', d.s_apellido) AS doctor,
+                a.nombre AS area
+         FROM Consultas co
+         INNER JOIN Citas c ON co.idCita = c.idCita
+         INNER JOIN Medicamentos m ON co.idMed = m.idMed
+         INNER JOIN Doctores d ON c.idDoc = d.idDoc
+         INNER JOIN Areas a ON d.idArea = a.idArea
+         WHERE co.idPac = ?
+         ORDER BY c.fecha_cita DESC`,
+        [idPac],
+        (listErr, recetas) => {
+          if (listErr) {
+            console.error(listErr);
+            return response.status(500).json({ error: "Error al obtener las recetas" });
+          }
+          response.json(recetas);
+        }
+      );
+    }
+  );
+});
+
 app.get("/Areas", (request, response) => {
   db.query("SELECT * FROM Areas", (err, result) => {
     if (err) {

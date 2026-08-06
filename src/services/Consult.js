@@ -15,3 +15,18 @@ export const setData = async (formData) => {
 
   return data;
 };
+
+export async function getRecetas(cedula) {
+  const url = `http://localhost:5000/Recetas?cedula=${encodeURIComponent(cedula)}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.log(error.message);
+  }
+}

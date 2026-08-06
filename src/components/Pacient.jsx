@@ -6,6 +6,7 @@ import L from 'leaflet';
 import { getNearbyPharmacies } from '../services/Pharmacy.js';
 import { getData as getAreasData } from '../services/Area.js';
 import { setData as setAppointmentData, getData as getAppointmentsData, getDoctors as getDoctorsData } from '../services/Appointment.js';
+import { getRecetas } from '../services/Consult.js';
 
 import 'leaflet/dist/leaflet.css';
 import '../assets/css/Pacient.css';
@@ -559,6 +560,84 @@ const RequestAppointment = () => {
   );
 }
 
+const Recetas = () => {
+  const [recetas, setRecetas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadRecetas = async () => {
+      setLoading(true);
+      setError('');
+      const user = JSON.parse(localStorage.getItem('helpOnlineUser') || '{}');
+      const result = await getRecetas(user.cedula);
+      if (result && !result.error) {
+        setRecetas(result);
+      } else {
+        setError('No se pudieron cargar tus recetas');
+      }
+      setLoading(false);
+    };
+    loadRecetas();
+  }, []);
+
+  return (
+    <div className="list-appointment">
+      <div className="list-appointment-container">
+        <div className="list-appointment-message">
+          <h3>Recetas</h3>
+          <p>Mira las recetas dadas por tus doctores</p>
+        </div>
+
+        {loading && <div className="list-appointment-loading">Cargando tus recetas...</div>}
+
+        {error && (
+          <div className="list-appointment-error">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="list-appointment-table-container">
+            {recetas.length === 0 ? (
+              <div className="list-appointment-empty">
+                <p>Aún no tienes recetas registradas.</p>
+              </div>
+            ) : (
+              <table className="list-appointment-table">
+                <thead>
+                  <tr>
+                    <th>Doctor</th>
+                    <th>Área</th>
+                    <th>Medicamento</th>
+                    <th>Cantidad</th>
+                    <th>Dosis</th>
+                    <th>Frecuencia</th>
+                    <th>Descripción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recetas.map((receta) => (
+                    <tr key={receta.idCon}>
+                      <td>{receta.doctor}</td>
+                      <td>{receta.area}</td>
+                      <td>{receta.medicamento}</td>
+                      <td>{receta.cantidad}</td>
+                      <td>{receta.dosis}</td>
+                      <td>{receta.frecuencia}</td>
+                      <td>{receta.descripcion}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Pacient() {
   const [activeSection, setActiveSection] = useState('appointment');
   const [userName, setUserName] = useState('');
@@ -583,12 +662,14 @@ export default function Pacient() {
         <div className="pacient-navbar">
           <button className={activeSection === 'appointment' ? 'active' : ''} onClick={() => setActiveSection('appointment')}>Solicitud Citas</button>
           <button className={activeSection === 'lists' ? 'active' : ''} onClick={() => setActiveSection('lists')}>Lista de Citas</button>
+          <button className={activeSection === 'recetas' ? 'active' : ''} onClick={() => setActiveSection('recetas')}>Recetas</button>
           <button className={activeSection === 'map' ? 'active' : ''} onClick={() => setActiveSection('map')}>Farmacias</button>
         </div>
 
         <div className="pacient-content">
           {activeSection === 'appointment' && <RequestAppointment />}
           {activeSection === 'lists' && <ListAppointments />}
+          {activeSection === 'recetas' && <Recetas />}
           {activeSection === 'map' && <PharmacyMap />}
         </div>
       </div>

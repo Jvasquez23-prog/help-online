@@ -248,6 +248,50 @@ app.post("/Citas", (request, response) => {
   );
 });
 
+app.get("/Citas", (request, response) => {
+  const { cedula } = request.query;
+
+  if (!cedula) {
+    return response.status(400).json({ error: "La cédula es obligatoria" });
+  }
+
+  db.query(
+    "SELECT idPac FROM Pacientes WHERE cedula = ?",
+    [cedula],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+      }
+
+      if (results.length === 0) {
+        return response.status(400).json({ error: "El paciente no se encuentra registrado" });
+      }
+
+      const idPac = results[0].idPac;
+
+      db.query(
+        `SELECT c.idCita, c.estado, c.fecha_cita,
+                CONCAT(d.nombre, ' ', d.p_apellido, ' ', d.s_apellido) AS doctor,
+                a.nombre AS area
+         FROM Citas c
+         INNER JOIN Doctores d ON c.idDoc = d.idDoc
+         INNER JOIN Areas a ON d.idArea = a.idArea
+         WHERE c.idPac = ?
+         ORDER BY c.fecha_cita DESC`,
+        [idPac],
+        (listErr, citas) => {
+          if (listErr) {
+            console.error(listErr);
+            return response.status(500).json({ error: "Error al obtener las citas" });
+          }
+          response.json(citas);
+        }
+      );
+    }
+  );
+});
+
 app.post("/Login", (request, response) => {
   const { cedula, contrasena } = request.body;
 

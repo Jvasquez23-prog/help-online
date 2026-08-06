@@ -1,5 +1,7 @@
-export async function getData() {
-  const url = 'http://localhost:5000/Pacientes';
+export async function getData(cedula) {
+  const url = cedula
+    ? `http://localhost:5000/Pacientes?cedula=${encodeURIComponent(cedula)}`
+    : 'http://localhost:5000/Pacientes';
   try {
     const response = await fetch(url);
     if (!response.ok) {

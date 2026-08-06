@@ -49,7 +49,16 @@ app.get("/Administrador", (request, response) => {
 });
 
 app.get("/Pacientes", (request, response) => {
-  db.query("SELECT * FROM Pacientes", (err, result) => {
+  const { cedula } = request.query;
+  let query = "SELECT * FROM Pacientes";
+  let params = [];
+
+  if (cedula) {
+    query += " WHERE cedula = ?";
+    params.push(cedula);
+  }
+
+  db.query(query, params, (err, result) => {
     if (err) {
       console.error('Error en la consulta:', err);
       return response.json({ error: err });
@@ -143,6 +152,109 @@ app.post("/Medicamentos", (request, response) => {
   );
 });
 
+app.get("/Medicamentos", (request, response) => {
+  db.query("SELECT * FROM Medicamentos", (err, result) => {
+    if (err) {
+      console.error('Error en la consulta:', err);
+      return response.json({ error: err });
+    }
+
+    response.json(result);
+  });
+});
+
+app.post("/Consultas", (request, response) => {
+  const { cedula, cedulaDoc, idMed, cantidad, dosis, frecuencia, descripcion } = request.body;
+
+  if (!cedula || !cedulaDoc || !idMed || !cantidad || !dosis || !frecuencia) {
+    return response.status(400).json({ error: "Cédula del paciente, cédula del doctor, medicamento, cantidad, dosis y frecuencia son obligatorios" });
+  }
+
+  db.query(
+    "SELECT idPac FROM Pacientes WHERE cedula = ?",
+    [cedula],
+    (err, pacResults) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+      }
+
+      if (pacResults.length === 0) {
+        return response.status(400).json({ error: "El paciente no se encuentra registrado" });
+      }
+
+      const idPac = pacResults[0].idPac;
+
+      db.query(
+        "SELECT idDoc FROM Doctores WHERE cedula = ?",
+        [cedulaDoc],
+        (docErr, docResults) => {
+          if (docErr) {
+            console.error(docErr);
+            return response.status(500).json({ error: "Error en el servidor al verificar el doctor" });
+          }
+
+          if (docResults.length === 0) {
+            return response.status(400).json({ error: "El doctor no se encuentra registrado" });
+          }
+
+          const idDoc = docResults[0].idDoc;
+
+          db.query(
+            "SELECT idMed FROM Medicamentos WHERE idMed = ?",
+            [idMed],
+            (medErr, medResults) => {
+              if (medErr) {
+                console.error(medErr);
+                return response.status(500).json({ error: "Error en el servidor al verificar el medicamento" });
+              }
+
+              if (medResults.length === 0) {
+                return response.status(400).json({ error: "El medicamento seleccionado no existe" });
+              }
+
+              db.query(
+                `SELECT c.idCita
+                 FROM Citas c
+                 LEFT JOIN Consultas co ON co.idCita = c.idCita
+                 WHERE c.idDoc = ? AND c.idPac = ? AND c.estado = 'Aprobada' AND co.idCon IS NULL
+                 ORDER BY c.fecha_cita DESC LIMIT 1`,
+                [idDoc, idPac],
+                (citaErr, citaResults) => {
+                  if (citaErr) {
+                    console.error(citaErr);
+                    return response.status(500).json({ error: "Error en el servidor al verificar la cita" });
+                  }
+
+                  if (citaResults.length === 0) {
+                    return response.status(400).json({ error: "No hay una cita aprobada sin consulta registrada para este paciente" });
+                  }
+
+                  const insertConsulta = (idCita) => {
+                    db.query(
+                      "INSERT INTO Consultas (descripcion, cantidad, dosis, frecuencia, idCita, idMed, idPac) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                      [descripcion || null, cantidad, dosis, frecuencia, idCita, idMed, idPac],
+                      (insertErr, result) => {
+                        if (insertErr) {
+                          console.error(insertErr);
+                          return response.status(500).json({ error: "Error al registrar la consulta" });
+                        }
+                        response.json({ message: "Consulta registrada exitosamente" });
+                      }
+                    );
+                  };
+
+                  insertConsulta(citaResults[0].idCita);
+                }
+              );
+            }
+          );
+        }
+      );
+    }
+  );
+});
+
 app.get("/Areas", (request, response) => {
   db.query("SELECT * FROM Areas", (err, result) => {
     if (err) {
@@ -192,13 +304,23 @@ app.post("/Areas", (request, response) => {
 });
 
 app.get("/Doctores", (request, response) => {
-  const { area } = request.query;
+  const { area, cedula } = request.query;
   let query = "SELECT * FROM Doctores";
-  let params = [];
+  const conditions = [];
+  const params = [];
+
+  if (cedula) {
+    conditions.push("cedula = ?");
+    params.push(cedula);
+  }
 
   if (area) {
-    query += " WHERE idArea = ?";
+    conditions.push("idArea = ?");
     params.push(area);
+  }
+
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ");
   }
 
   db.query(query, params, (err, result) => {
@@ -249,43 +371,106 @@ app.post("/Citas", (request, response) => {
 });
 
 app.get("/Citas", (request, response) => {
-  const { cedula } = request.query;
+  const { cedula, idDoc } = request.query;
 
-  if (!cedula) {
-    return response.status(400).json({ error: "La cédula es obligatoria" });
+  if (!cedula && !idDoc) {
+    return response.status(400).json({ error: "La cédula o el doctor son obligatorios" });
+  }
+
+  const conditions = [];
+  const params = [];
+
+  const finish = () => {
+    let query =
+      `SELECT c.idCita, c.estado, c.fecha_cita,
+              CONCAT(d.nombre, ' ', d.p_apellido, ' ', d.s_apellido) AS doctor,
+              a.nombre AS area,
+              CONCAT(p.nombre, ' ', p.p_apellido, ' ', p.s_apellido) AS paciente
+       FROM Citas c
+       INNER JOIN Doctores d ON c.idDoc = d.idDoc
+       INNER JOIN Areas a ON d.idArea = a.idArea
+       INNER JOIN Pacientes p ON c.idPac = p.idPac`;
+
+    if (conditions.length > 0) {
+      query += " WHERE " + conditions.join(" AND ");
+    }
+
+    query += " ORDER BY c.fecha_cita DESC";
+
+    db.query(query, params, (listErr, citas) => {
+      if (listErr) {
+        console.error(listErr);
+        return response.status(500).json({ error: "Error al obtener las citas" });
+      }
+      response.json(citas);
+    });
+  };
+
+  if (idDoc) {
+    conditions.push("c.idDoc = ?");
+    params.push(idDoc);
+  }
+
+  if (cedula) {
+    db.query(
+      "SELECT idPac FROM Pacientes WHERE cedula = ?",
+      [cedula],
+      (err, results) => {
+        if (err) {
+          console.error(err);
+          return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+        }
+
+        if (results.length === 0) {
+          return response.status(400).json({ error: "El paciente no se encuentra registrado" });
+        }
+
+        conditions.push("c.idPac = ?");
+        params.push(results[0].idPac);
+        finish();
+      }
+    );
+  } else {
+    finish();
+  }
+});
+
+app.post("/Citas/estado", (request, response) => {
+  const { idCita, cedulaDoc, estado } = request.body;
+
+  if (!idCita || !cedulaDoc || !estado) {
+    return response.status(400).json({ error: "Cita, doctor y estado son obligatorios" });
+  }
+
+  if (!["Programada", "Aprobada", "Rechazada"].includes(estado)) {
+    return response.status(400).json({ error: "El estado de la cita no es válido" });
   }
 
   db.query(
-    "SELECT idPac FROM Pacientes WHERE cedula = ?",
-    [cedula],
+    `SELECT c.idCita
+     FROM Citas c
+     INNER JOIN Doctores d ON c.idDoc = d.idDoc
+     WHERE c.idCita = ? AND d.cedula = ?`,
+    [idCita, cedulaDoc],
     (err, results) => {
       if (err) {
         console.error(err);
-        return response.status(500).json({ error: "Error en el servidor al verificar el paciente" });
+        return response.status(500).json({ error: "Error en el servidor al verificar la cita" });
       }
 
       if (results.length === 0) {
-        return response.status(400).json({ error: "El paciente no se encuentra registrado" });
+        return response.status(400).json({ error: "La cita no pertenece al doctor conectado" });
       }
 
-      const idPac = results[0].idPac;
-
       db.query(
-        `SELECT c.idCita, c.estado, c.fecha_cita,
-                CONCAT(d.nombre, ' ', d.p_apellido, ' ', d.s_apellido) AS doctor,
-                a.nombre AS area
-         FROM Citas c
-         INNER JOIN Doctores d ON c.idDoc = d.idDoc
-         INNER JOIN Areas a ON d.idArea = a.idArea
-         WHERE c.idPac = ?
-         ORDER BY c.fecha_cita DESC`,
-        [idPac],
-        (listErr, citas) => {
-          if (listErr) {
-            console.error(listErr);
-            return response.status(500).json({ error: "Error al obtener las citas" });
+        "UPDATE Citas SET estado = ? WHERE idCita = ?",
+        [estado, idCita],
+        (updateErr, result) => {
+          if (updateErr) {
+            console.error(updateErr);
+            return response.status(500).json({ error: "Error al actualizar la cita" });
           }
-          response.json(citas);
+          response.json({ message: "Cita actualizada exitosamente" });
         }
       );
     }

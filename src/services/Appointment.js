@@ -72,6 +72,24 @@ export async function updateEstado(idCita, cedulaDoc, estado) {
   return data;
 }
 
+export async function updateCita(idCita, cedulaDoc, fecha_cita, estado) {
+  const res = await fetch(`http://localhost:5000/Citas/${idCita}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ cedulaDoc, fecha_cita, estado }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Hubo un error al actualizar la cita');
+  }
+
+  return data;
+}
+
 export async function getDoctors(area) {
   const url = area
     ? `http://localhost:5000/Doctores?area=${encodeURIComponent(area)}`

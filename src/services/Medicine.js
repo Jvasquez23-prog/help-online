@@ -30,3 +30,35 @@ export async function getData() {
     console.log(error.message);
   }
 }
+
+export const updateData = async (idMed, formData) => {
+  const res = await fetch(`http://localhost:5000/Medicamentos/${idMed}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Hubo un error al actualizar');
+  }
+
+  return data;
+};
+
+export const deleteData = async (idMed) => {
+  const res = await fetch(`http://localhost:5000/Medicamentos/${idMed}`, {
+    method: 'DELETE',
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Hubo un error al eliminar');
+  }
+
+  return data;
+};

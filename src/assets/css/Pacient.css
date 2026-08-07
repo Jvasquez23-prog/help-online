@@ -66,24 +66,47 @@
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
+  gap: 12px;
   width: 100%;
   height: 90px;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   overflow-x: auto;
+  box-sizing: border-box;
+  padding: 0 24px 8px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: #06b6d4 #cffafe;
 
   @media (width > 1000px) {
     display: flex;
     flex-direction: row;
-    justify-content: center;
     align-items: center;
+    padding: 0 24px 8px 24px;
   }
+}
+
+.pacient-navbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.pacient-navbar::-webkit-scrollbar-track {
+  background: #cffafe;
+  border-radius: 10px;
+}
+
+.pacient-navbar::-webkit-scrollbar-thumb {
+  background: #06b6d4;
+  border-radius: 10px;
+}
+
+.pacient-navbar::-webkit-scrollbar-thumb:hover {
+  background: #0891b2;
 }
 
 .pacient-navbar > button {
   flex: 0 0 auto;
   width: 300px;
   height: 50px;
-  margin: 0 5px 0 5px;
+  margin: 0;
   padding: 10px;
   border: none;
   border-radius: 20px;
@@ -92,6 +115,18 @@
   background-color: #06b6d4;
   color: #ffffff;
   cursor: pointer;
+  white-space: nowrap;
+
+  @media (width > 1000px) {
+    width: 300px;
+    margin: 0 5px 0 5px;
+    font-size: 20px;
+  }
+
+  @media (max-width: 520px) {
+    width: 200px;
+    font-size: 17px;
+  }
 }
 
 .pacient-content {
@@ -642,4 +677,62 @@
 
 .user-marker-icon {
   filter: hue-rotate(120deg) saturate(2);
+}
+
+.perfil-success {
+  width: 350px;
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  background-color: #dcfce7;
+  color: #15803d;
+  text-align: center;
+}
+
+.perfil-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.perfil-form > input {
+  width: 350px;
+  height: 50px;
+  margin: 8px 0;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  background-color: #f4fafa;
+  outline: none;
+}
+
+.perfil-form > input[type='submit'] {
+  background-color: #06b6d4;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.perfil-form > input:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+}
+
+.perfil-delete {
+  width: 350px;
+  height: 50px;
+  margin-bottom: 40px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #ef4444;
+  color: #ffffff;
+  cursor: pointer;
 }

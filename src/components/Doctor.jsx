@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { getData as getPacientData } from '../services/Pacient.js';
 import { setData as setConsultaData } from '../services/Consult.js';
 import { getData as getMedicamentoData } from '../services/Medicine.js';
-import { getDoctorByCedula, getData as getCitasData, updateEstado } from '../services/Appointment.js';
+import { getDoctorByCedula, getData as getCitasData, updateEstado, updateCita } from '../services/Appointment.js';
 
 import '../assets/css/Doctor.css';
 
@@ -362,6 +362,141 @@ const GestionCitas = () => {
   );
 }
 
+const ActualizarCita = () => {
+  const [citas, setCitas] = useState([]);
+  const [doctorId, setDoctorId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({ fecha_cita: '', estado: 'Programada' });
+  const [error, setError] = useState('');
+  const [msg, setMsg] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const user = JSON.parse(localStorage.getItem('helpOnlineUser') || '{}');
+
+  useEffect(() => {
+    const load = async () => {
+      const doc = await getDoctorByCedula(user.cedula);
+      if (doc && !doc.error && doc.length > 0) {
+        setDoctorId(doc[0].idDoc);
+        const citasResult = await getCitasData(null, doc[0].idDoc);
+        if (citasResult && !citasResult.error) {
+          setCitas(citasResult);
+        }
+      } else {
+        setError('No se pudo identificar al doctor conectado');
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const toLocalValue = (fechaCita) => {
+    const date = new Date(fechaCita);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  const startEdit = (cita) => {
+    setError('');
+    setMsg('');
+    setEditingId(cita.idCita);
+    setFormData({
+      fecha_cita: toLocalValue(cita.fecha_cita),
+      estado: cita.estado
+    });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMsg('');
+    try {
+      await updateCita(editingId, user.cedula, formData.fecha_cita, formData.estado);
+      setMsg('Cita actualizada exitosamente');
+      setEditingId(null);
+      const citasResult = await getCitasData(null, doctorId);
+      if (citasResult && !citasResult.error) {
+        setCitas(citasResult);
+      }
+    } catch (error) {
+      setError(error.message || 'No se pudo actualizar la cita');
+    }
+  };
+
+  return (
+    <div className="office">
+      <div className="office-container">
+        <div className="office-message">
+          <h3>Actualizar Cita</h3>
+          <p>Modifique la fecha u estado de las citas de sus pacientes</p>
+        </div>
+
+        {loading && <div className="gestion-citas-loading">Cargando citas...</div>}
+
+        {error && (
+          <div className="office-error">
+            <p>{error}</p>
+          </div>
+        )}
+        {msg && (
+          <div className="office-success">
+            <p>{msg}</p>
+          </div>
+        )}
+
+        {!loading && citas.length === 0 && (
+          <div className="office-error consult-block">
+            <p>No hay citas solicitadas para usted.</p>
+          </div>
+        )}
+
+        {citas.length > 0 && (
+          <div className="consult-list">
+            {citas.map((cita) => (
+              <div key={cita.idCita} className="consult-item">
+                {editingId === cita.idCita ? (
+                  <form className="manage-edit-form" onSubmit={handleUpdate}>
+                    <input type="datetime-local" name="fecha_cita" value={formData.fecha_cita} onChange={handleChange} required />
+                    <select name="estado" value={formData.estado} onChange={handleChange} required>
+                      <option value="Programada">Programada</option>
+                      <option value="Aprobada">Aprobada</option>
+                      <option value="Rechazada">Rechazada</option>
+                    </select>
+                    <input type="submit" value="Guardar" />
+                    <button type="button" className="manage-cancel" onClick={() => setEditingId(null)}>Cancelar</button>
+                  </form>
+                ) : (
+                  <>
+                    <div className="consult-item-info">
+                      <p><b>Paciente:</b> {cita.paciente}</p>
+                      <p><b>Área:</b> {cita.area}</p>
+                      <p><b>Fecha:</b> {formatDate(cita.fecha_cita)}</p>
+                    </div>
+                    <span className={`consult-status ${String(cita.estado).toLowerCase()}`}>
+                      {cita.estado}
+                    </span>
+                    <div className="consult-actions">
+                      <button type="button" onClick={() => startEdit(cita)}>Editar</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Doctor() {
   const [activeSection, setActiveSection] = useState('consultorio');
   const [userName, setUserName] = useState('');
@@ -386,11 +521,13 @@ export default function Doctor() {
         <div className="doctor-navbar">
           <button className={activeSection === 'consultorio' ? 'active' : ''} onClick={() => setActiveSection('consultorio')}>Consultorio</button>
           <button className={activeSection === 'gestion' ? 'active' : ''} onClick={() => setActiveSection('gestion')}>Gestión de Citas</button>
+          <button className={activeSection === 'actualizar' ? 'active' : ''} onClick={() => setActiveSection('actualizar')}>Actualizar Cita</button>
         </div>
 
         <div className="doctor-content">
           {activeSection === 'consultorio' && <Consultorio />}
           {activeSection === 'gestion' && <GestionCitas />}
+          {activeSection === 'actualizar' && <ActualizarCita />}
         </div>
       </div>
     </div>

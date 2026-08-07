@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -7,6 +8,7 @@ import { getNearbyPharmacies } from '../services/Pharmacy.js';
 import { getData as getAreasData } from '../services/Area.js';
 import { setData as setAppointmentData, getData as getAppointmentsData, getDoctors as getDoctorsData } from '../services/Appointment.js';
 import { getRecetas } from '../services/Consult.js';
+import { getData as getPacientData, updateData as updatePacientData, deleteData as deletePacientData } from '../services/Pacient.js';
 
 import 'leaflet/dist/leaflet.css';
 import '../assets/css/Pacient.css';
@@ -638,6 +640,125 @@ const Recetas = () => {
   );
 }
 
+const Perfil = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    nombre: '',
+    p_apellido: '',
+    s_apellido: '',
+    cedula: '',
+    edad: ''
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      setLoading(true);
+      const user = JSON.parse(localStorage.getItem('helpOnlineUser') || '{}');
+      const result = await getPacientData(user.cedula);
+      if (result && !result.error && result.length > 0) {
+        const pac = result[0];
+        setFormData({
+          nombre: pac.nombre,
+          p_apellido: pac.p_apellido,
+          s_apellido: pac.s_apellido,
+          cedula: pac.cedula,
+          edad: String(pac.edad)
+        });
+      } else {
+        setError('No se pudo cargar tu perfil');
+      }
+      setLoading(false);
+    };
+    loadProfile();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'edad' && !/^\d{0,3}$/.test(value)) {
+      return;
+    }
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    try {
+      await updatePacientData(formData.cedula, {
+        nombre: formData.nombre,
+        p_apellido: formData.p_apellido,
+        s_apellido: formData.s_apellido,
+        edad: parseInt(formData.edad, 10)
+      });
+      setSuccess('Perfil actualizado exitosamente');
+    } catch (error) {
+      setError(error.message || 'No se pudo actualizar el perfil');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('¿Seguro que deseas eliminar tu cuenta? Esta acción no se puede deshacer.')) {
+      return;
+    }
+    setError('');
+    setSuccess('');
+    try {
+      await deletePacientData(formData.cedula);
+      localStorage.removeItem('helpOnlineUser');
+      navigate('/');
+    } catch (error) {
+      setError(error.message || 'No se pudo eliminar la cuenta');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="list-appointment">
+        <div className="list-appointment-container">
+          <div className="list-appointment-loading">Cargando tu perfil...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="list-appointment">
+      <div className="list-appointment-container">
+        <div className="list-appointment-message">
+          <h3>Perfil</h3>
+          <p>Actualice sus datos personales o elimine su cuenta</p>
+        </div>
+
+        {error && (
+          <div className="list-appointment-error">
+            <p>{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="perfil-success">
+            <p>{success}</p>
+          </div>
+        )}
+
+        <form className="perfil-form" onSubmit={handleUpdate}>
+          <input type="text" name="nombre" placeholder="Nombre" value={formData.nombre} onChange={handleChange} required />
+          <input type="text" name="p_apellido" placeholder="Primer Apellido" value={formData.p_apellido} onChange={handleChange} required />
+          <input type="text" name="s_apellido" placeholder="Segundo Apellido" value={formData.s_apellido} onChange={handleChange} />
+          <input type="text" placeholder="Cédula" value={formData.cedula} disabled />
+          <input type="text" name="edad" placeholder="Edad" value={formData.edad} onChange={handleChange} maxLength={3} required />
+          <input type="submit" value="Actualizar" />
+        </form>
+
+        <button type="button" className="perfil-delete" onClick={handleDelete}>Eliminar Cuenta</button>
+      </div>
+    </div>
+  );
+}
+
 export default function Pacient() {
   const [activeSection, setActiveSection] = useState('appointment');
   const [userName, setUserName] = useState('');
@@ -664,6 +785,7 @@ export default function Pacient() {
           <button className={activeSection === 'lists' ? 'active' : ''} onClick={() => setActiveSection('lists')}>Lista de Citas</button>
           <button className={activeSection === 'recetas' ? 'active' : ''} onClick={() => setActiveSection('recetas')}>Recetas</button>
           <button className={activeSection === 'map' ? 'active' : ''} onClick={() => setActiveSection('map')}>Farmacias</button>
+          <button className={activeSection === 'perfil' ? 'active' : ''} onClick={() => setActiveSection('perfil')}>Perfil</button>
         </div>
 
         <div className="pacient-content">
@@ -671,6 +793,7 @@ export default function Pacient() {
           {activeSection === 'lists' && <ListAppointments />}
           {activeSection === 'recetas' && <Recetas />}
           {activeSection === 'map' && <PharmacyMap />}
+          {activeSection === 'perfil' && <Perfil />}
         </div>
       </div>
     </div>

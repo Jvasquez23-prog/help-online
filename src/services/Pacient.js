@@ -36,3 +36,35 @@ export const setData = async (formData) => {
     throw error;
   }
 };
+
+export const updateData = async (cedula, formData) => {
+  const res = await fetch(`http://localhost:5000/Pacientes/${cedula}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Hubo un error al actualizar');
+  }
+
+  return data;
+};
+
+export const deleteData = async (cedula) => {
+  const res = await fetch(`http://localhost:5000/Pacientes/${cedula}`, {
+    method: 'DELETE',
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Hubo un error al eliminar');
+  }
+
+  return data;
+};

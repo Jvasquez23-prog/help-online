@@ -525,6 +525,206 @@ app.post("/Citas/estado", (request, response) => {
   );
 });
 
+app.put("/Doctores/:idDoc", (request, response) => {
+  const { nombre, p_apellido, s_apellido, cedula, idArea } = request.body;
+  const { idDoc } = request.params;
+
+  if (!nombre || !p_apellido || !cedula || !idArea) {
+    return response.status(400).json({ error: "Nombre, apellido, cédula y área son obligatorios" });
+  }
+
+  db.query(
+    "UPDATE Doctores SET nombre = ?, p_apellido = ?, s_apellido = ?, cedula = ?, idArea = ? WHERE idDoc = ?",
+    [nombre, p_apellido, s_apellido, cedula, idArea, idDoc],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error al actualizar el doctor" });
+      }
+      response.json({ message: "Doctor actualizado exitosamente" });
+    }
+  );
+});
+
+app.delete("/Doctores/:idDoc", (request, response) => {
+  const { idDoc } = request.params;
+
+  db.query("DELETE FROM Doctores WHERE idDoc = ?", [idDoc], (err, result) => {
+    if (err) {
+      console.error(err);
+      if (err.errno === 1451) {
+        return response.status(400).json({ error: "No se puede eliminar: el doctor tiene citas asociadas" });
+      }
+      return response.status(500).json({ error: "Error al eliminar el doctor" });
+    }
+    if (result.affectedRows === 0) {
+      return response.status(404).json({ error: "El doctor no existe" });
+    }
+    response.json({ message: "Doctor eliminado exitosamente" });
+  });
+});
+
+app.put("/Medicamentos/:idMed", (request, response) => {
+  const { nombre, cantidad, fecha_entrega, idArea } = request.body;
+  const { idMed } = request.params;
+
+  if (!nombre || !fecha_entrega || !idArea) {
+    return response.status(400).json({ error: "Nombre, fecha de entrega y área son obligatorios" });
+  }
+
+  db.query(
+    "UPDATE Medicamentos SET nombre = ?, cantidad = ?, fecha_entrega = ?, idArea = ? WHERE idMed = ?",
+    [nombre, cantidad, fecha_entrega, idArea, idMed],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error al actualizar el medicamento" });
+      }
+      response.json({ message: "Medicamento actualizado exitosamente" });
+    }
+  );
+});
+
+app.delete("/Medicamentos/:idMed", (request, response) => {
+  const { idMed } = request.params;
+
+  db.query("DELETE FROM Medicamentos WHERE idMed = ?", [idMed], (err, result) => {
+    if (err) {
+      console.error(err);
+      if (err.errno === 1451) {
+        return response.status(400).json({ error: "No se puede eliminar: el medicamento tiene consultas asociadas" });
+      }
+      return response.status(500).json({ error: "Error al eliminar el medicamento" });
+    }
+    if (result.affectedRows === 0) {
+      return response.status(404).json({ error: "El medicamento no existe" });
+    }
+    response.json({ message: "Medicamento eliminado exitosamente" });
+  });
+});
+
+app.put("/Areas/:idArea", (request, response) => {
+  const { nombre } = request.body;
+  const { idArea } = request.params;
+
+  if (!nombre || !String(nombre).trim()) {
+    return response.status(400).json({ error: "El nombre del área es obligatorio" });
+  }
+
+  db.query(
+    "UPDATE Areas SET nombre = ? WHERE idArea = ?",
+    [nombre.trim(), idArea],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error al actualizar el área" });
+      }
+      response.json({ message: "Área actualizada exitosamente" });
+    }
+  );
+});
+
+app.delete("/Areas/:idArea", (request, response) => {
+  const { idArea } = request.params;
+
+  db.query("DELETE FROM Areas WHERE idArea = ?", [idArea], (err, result) => {
+    if (err) {
+      console.error(err);
+      if (err.errno === 1451) {
+        return response.status(400).json({ error: "No se puede eliminar: el área tiene registros asociados" });
+      }
+      return response.status(500).json({ error: "Error al eliminar el área" });
+    }
+    if (result.affectedRows === 0) {
+      return response.status(404).json({ error: "El área no existe" });
+    }
+    response.json({ message: "Área eliminada exitosamente" });
+  });
+});
+
+app.put("/Pacientes/:cedula", (request, response) => {
+  const { nombre, p_apellido, s_apellido, edad } = request.body;
+  const { cedula } = request.params;
+
+  if (!nombre || !p_apellido || !edad) {
+    return response.status(400).json({ error: "Nombre, apellido y edad son obligatorios" });
+  }
+
+  db.query(
+    "UPDATE Pacientes SET nombre = ?, p_apellido = ?, s_apellido = ?, edad = ? WHERE cedula = ?",
+    [nombre, p_apellido, s_apellido, edad, cedula],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error al actualizar el paciente" });
+      }
+      if (result.affectedRows === 0) {
+        return response.status(404).json({ error: "El paciente no existe" });
+      }
+      response.json({ message: "Paciente actualizado exitosamente" });
+    }
+  );
+});
+
+app.delete("/Pacientes/:cedula", (request, response) => {
+  const { cedula } = request.params;
+
+  db.query("DELETE FROM Pacientes WHERE cedula = ?", [cedula], (err, result) => {
+    if (err) {
+      console.error(err);
+      if (err.errno === 1451) {
+        return response.status(400).json({ error: "No se puede eliminar: el paciente tiene citas asociadas" });
+      }
+      return response.status(500).json({ error: "Error al eliminar el paciente" });
+    }
+    if (result.affectedRows === 0) {
+      return response.status(404).json({ error: "El paciente no existe" });
+    }
+    response.json({ message: "Paciente eliminado exitosamente" });
+  });
+});
+
+app.put("/Citas/:idCita", (request, response) => {
+  const { fecha_cita, estado, cedulaDoc } = request.body;
+  const { idCita } = request.params;
+
+  if (!fecha_cita || !cedulaDoc) {
+    return response.status(400).json({ error: "Fecha, estado y doctor son obligatorios" });
+  }
+
+  db.query(
+    `SELECT c.idCita
+     FROM Citas c
+     INNER JOIN Doctores d ON c.idDoc = d.idDoc
+     WHERE c.idCita = ? AND d.cedula = ?`,
+    [idCita, cedulaDoc],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return response.status(500).json({ error: "Error en el servidor al verificar la cita" });
+      }
+
+      if (results.length === 0) {
+        return response.status(400).json({ error: "La cita no pertenece al doctor conectado" });
+      }
+
+      const newEstado = estado && ["Programada", "Aprobada", "Rechazada"].includes(estado) ? estado : results[0].estado;
+
+      db.query(
+        "UPDATE Citas SET fecha_cita = ?, estado = ? WHERE idCita = ?",
+        [fecha_cita, newEstado, idCita],
+        (updateErr, result) => {
+          if (updateErr) {
+            console.error(updateErr);
+            return response.status(500).json({ error: "Error al actualizar la cita" });
+          }
+          response.json({ message: "Cita actualizada exitosamente" });
+        }
+      );
+    }
+  );
+});
+
 app.post("/Login", (request, response) => {
   const { cedula, contrasena } = request.body;
 

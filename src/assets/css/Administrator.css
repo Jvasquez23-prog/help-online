@@ -421,3 +421,232 @@
   background-color: #d1fae5;
   color: #065f46;
 }
+
+.manage-records {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  background-color: #f4fbfb;
+}
+
+.manage-records-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+
+  @media (width > 1000px) {
+    width: 70%;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    padding: 32px;
+    border-radius: 20px;
+  }
+}
+
+.manage-records-message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+  color: #000000;
+
+  @media (width > 1000px) {
+    align-items: flex-start;
+    width: 90%;
+  }
+}
+
+.manage-records-message > h3 {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.manage-records-message > p {
+  margin-top: 5px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.manage-tabs {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.manage-tabs > button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #06b6d4;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.manage-tabs > button.active {
+  background-color: #0891b2;
+}
+
+.manage-section {
+  width: 95%;
+  margin-bottom: 30px;
+}
+
+.manage-section-header > h4 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.manage-error,
+.manage-success {
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.manage-error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.manage-success {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.manage-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.manage-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(8, 145, 178, 0.25);
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.manage-table > thead {
+  background-color: #06b6d4;
+  color: #ffffff;
+}
+
+.manage-table > thead > tr > th {
+  padding: 14px 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.manage-table > tbody > tr:nth-child(even) {
+  background-color: #ecfeff;
+}
+
+.manage-table > tbody > tr > td {
+  padding: 12px;
+  font-size: 15px;
+  color: #334155;
+  border-top: 1px solid rgba(8, 145, 178, 0.15);
+}
+
+.manage-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.manage-actions > button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.manage-actions > button:first-child {
+  background-color: #0891b2;
+}
+
+.manage-actions > button:last-child {
+  background-color: #ef4444;
+}
+
+.manage-empty {
+  padding: 25px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background-color: #f8fafc;
+  color: #94a3b8;
+  font-size: 15px;
+  text-align: center;
+}
+
+.manage-edit-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+
+  @media (width > 1000px) {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.manage-edit-form > input,
+.manage-edit-form > select {
+  width: 220px;
+  height: 42px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #f4fafa;
+  outline: none;
+}
+
+.manage-edit-form > input[type='submit'] {
+  background-color: #10b981;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.manage-edit-form > .manage-cancel {
+  height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: #64748b;
+  color: #ffffff;
+  cursor: pointer;
+}
